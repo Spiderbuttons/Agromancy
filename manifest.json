@@ -1,0 +1,9 @@
+{
+    "Name": "Agromancy",
+    "Author": "Spiderbuttons",
+    "Version": "1.0.0",
+    "Description": "Crop-themed wizardry.",
+    "UniqueID": "Spiderbuttons.Agromancy",
+    "EntryDll": "Agromancy.dll",
+    "UpdateKeys": []
+}
