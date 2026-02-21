@@ -79,7 +79,7 @@ public static class EssenceCalculator
         // The intent is to make slower growing crops have less harvest essence anyway, so regrowable crops should have a buff.
         
         float percentageOfMonthToGrow = totalGrowthDays / 28f;
-        var harvestEssence = (byte)(255 * (1 - percentageOfMonthToGrow));
+        var harvestEssence = (byte)(255 * percentageOfMonthToGrow);
         
         return harvestEssence;
     }
