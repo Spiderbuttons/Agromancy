@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Agromancy.Models;
+using Newtonsoft.Json;
 using StardewValley;
 
 namespace Agromancy;
@@ -15,30 +16,48 @@ public static class EssenceCalculator
     private const float MAX_GIANT_CHANCE = 1f;
     private const float MIN_WATER_CHANCE = 0f;
 
-    public static void Mutate(this CropEssences essences, bool positiveOnly = false)
+    public static void Mutate(this CropEssences essences, int range = 10, bool positiveOnly = false)
     {
-        essences.YieldEssence = MutateEssence(essences.YieldEssence, positiveOnly);
+        essences.YieldEssence = MutateEssence(essences.YieldEssence, range, positiveOnly);
         for (int i = 0; i < essences.QualityEssence.Length; i++)
         {
-            essences.QualityEssence[i] = MutateEssence(essences.QualityEssence[i], positiveOnly);
+            essences.QualityEssence[i] = MutateEssence(essences.QualityEssence[i], range, positiveOnly);
         }
-        essences.GrowthEssence = MutateEssence(essences.GrowthEssence, positiveOnly);
-        essences.GiantEssence = MutateEssence(essences.GiantEssence, positiveOnly);
-        essences.WaterEssence = MutateEssence(essences.WaterEssence, positiveOnly);
-        essences.SeedEssence = MutateEssence(essences.SeedEssence, positiveOnly);
+        essences.GrowthEssence = MutateEssence(essences.GrowthEssence, range, positiveOnly);
+        essences.GiantEssence = MutateEssence(essences.GiantEssence, range, positiveOnly);
+        essences.WaterEssence = MutateEssence(essences.WaterEssence, range, positiveOnly);
+        essences.SeedEssence = MutateEssence(essences.SeedEssence, range, positiveOnly);
+    }
+
+    public static IHaveModData ApplyEssences(this IHaveModData essenceTarget, CropEssences essences)
+    {
+        essenceTarget.modData[Agromancy.Manifest.UniqueID] = JsonConvert.SerializeObject(essences);
+        return essenceTarget;
     }
     
-    public static byte MutateEssence(byte original, bool positiveOnly = false)
+    public static byte MutateEssence(byte original, int range = 10, bool positiveOnly = false)
     {
-        int mutationRange = 10;
-        int mutation = Game1.random.Next(-mutationRange, mutationRange + 1);
+        int mutation = Game1.random.Next(-range, range + 1);
         if (positiveOnly) mutation = Math.Abs(mutation);
         int mutatedValue = Math.Clamp(original + mutation, 0, 255);
         return (byte)mutatedValue;
     }
 
-    public static CropEssences DefaultEssences(AgroCropReference cropRef)
+    public static CropEssences DefaultEssences(AgroCropReference? cropRef)
     {
+        if (cropRef is null)
+        {
+            return new CropEssences
+            {
+                YieldEssence = 0,
+                QualityEssence = [0, 0, 0],
+                GrowthEssence = 0,
+                GiantEssence = 0,
+                WaterEssence = 0,
+                SeedEssence = 0
+            };
+        }
+        
         return new CropEssences
         {
             YieldEssence = DefaultYieldEssence(cropRef),

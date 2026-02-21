@@ -9,6 +9,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.GameData.Crops;
 using StardewValley.GameData.GiantCrops;
+using StardewValley.TerrainFeatures;
 
 namespace Agromancy;
 
@@ -43,6 +44,44 @@ public class CropManager
         FillLookups();
         Agromancy.ModHelper.Events.Player.InventoryChanged += OnInventoryChanged;
         Agromancy.ModHelper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
+    }
+
+    public static CropEssences? GrabEssences(IHaveModData essenceSource)
+    {
+        if (!essenceSource.modData.TryGetValue(Agromancy.Manifest.UniqueID, out string? serializedEssences))
+            return null;
+
+        try
+        {
+            CropEssences? essences = JsonConvert.DeserializeObject<CropEssences>(serializedEssences);
+            return essences;
+        }
+        catch (JsonException ex)
+        {
+            Agromancy.ModMonitor.Log($"Failed to deserialize Crop Essences: {ex.Message}", LogLevel.Error);
+            return null;
+        }
+    }
+
+    public static Item ModifyHarvestedCrop(Item harvest, Crop crop)
+    {
+        Log.Alert("Modifying crop harvest.");
+        CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(GetCropReferenceByCropId($"(O){crop.indexOfHarvest.Value}"));
+        essences.Mutate(range: 5, positiveOnly: true); // TODO: Config option to allow negative mutations.
+        
+        return (Item)harvest.ApplyEssences(essences);
+    }
+    
+    public static AgroCropReference? GetCropReferenceBySeedId(string seedId)
+    {
+        EnsureLookups();
+        return SeedIdToCropDataLookup.GetValueOrDefault(seedId);
+    }
+    
+    public static AgroCropReference? GetCropReferenceByCropId(string cropId)
+    {
+        EnsureLookups();
+        return CropIdToCropDataLookup.GetValueOrDefault(cropId);
     }
 
     private void OnInventoryChanged(object? sender, InventoryChangedEventArgs e)

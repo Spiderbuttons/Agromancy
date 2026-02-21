@@ -14,6 +14,7 @@ using Agromancy.Commands;
 using Agromancy.Models;
 using Newtonsoft.Json;
 using StardewValley.GameData.Crops;
+using StardewValley.TerrainFeatures;
 
 namespace Agromancy
 {
@@ -77,7 +78,30 @@ namespace Agromancy
 
             if (e.Button is SButton.F3)
             {
-                if (Game1.player.ActiveObject is not null)
+                var clickedTile = e.Cursor.Tile;
+                if (Game1.currentLocation.terrainFeatures.TryGetValue(clickedTile, out var terrainFeature))
+                {
+                    if (terrainFeature is not HoeDirt feature) return;
+                    CropEssences? hoeDirtEssences = CropManager.GrabEssences(feature.crop);
+                    Log.Error("------------------------");
+                    if (hoeDirtEssences is null)
+                    {
+                        Log.Warn("No Agromancy data found on this crop.");
+                        return;
+                    }
+                    Log.Info("Agromancy data found on this crop:");
+
+                    foreach (var prop in typeof(CropEssences).GetProperties())
+                    {
+                        if (prop.PropertyType == typeof(byte[]))
+                        {
+                            byte[] arr = (byte[])prop.GetValue(hoeDirtEssences)!;
+                            Log.Info($"{prop.Name}: [{string.Join(", ", arr)}]");
+                        }
+                        else Log.Info($"{prop.Name}: {prop.GetValue(hoeDirtEssences)}");
+                    }
+                }
+                else if (Game1.player.ActiveObject is not null)
                 {
                     bool hasAgroData = Game1.player.ActiveObject.modData.ContainsKey(Manifest.UniqueID);
                     Log.Error("------------------------");
@@ -85,18 +109,6 @@ namespace Agromancy
                     if (hasAgroData)
                     {
                         CropEssences essences = JsonConvert.DeserializeObject<CropEssences>(Game1.player.ActiveObject.modData[Manifest.UniqueID]!)!;
-                        foreach (var prop in typeof(CropEssences).GetProperties())
-                        {
-                            if (prop.PropertyType == typeof(byte[]))
-                            {
-                                byte[] arr = (byte[])prop.GetValue(essences)!;
-                                Log.Info($"{prop.Name}: [{string.Join(", ", arr)}]");
-                            }
-                            else Log.Info($"{prop.Name}: {prop.GetValue(essences)}");
-                        }
-
-                        Log.Alert("Mutating essences...");
-                        essences.Mutate();
                         foreach (var prop in typeof(CropEssences).GetProperties())
                         {
                             if (prop.PropertyType == typeof(byte[]))

@@ -5,5 +5,10 @@
     "Description": "Crop-themed wizardry.",
     "UniqueID": "Spiderbuttons.Agromancy",
     "EntryDll": "Agromancy.dll",
+    "Dependencies": [
+        {
+            "UniqueID": "Spiderbuttons.BETAS",
+        }
+    ],
     "UpdateKeys": []
 }
