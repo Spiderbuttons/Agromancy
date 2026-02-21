@@ -75,9 +75,9 @@ public class GenericHelpCommand() : ConsoleCommand("help", allowOnTitle: true)
     {
         return $"{CommandHandler.RootCommand} {Name}\r\n" +
                $"   Provides information about {CommandHandler.ModName} commands.\r\n" +
-               $"   Usage: cmf {Name}\r\n" +
+               $"   Usage: {CommandHandler.RootCommand} {Name}\r\n" +
                $"      Lists all available {CommandHandler.ModName} commands.\r\n" +
-               $"   Usage: cmf {Name} <command>\r\n" +
+               $"   Usage: {CommandHandler.RootCommand} {Name} <command>\r\n" +
                $"      Displays help for a specific command.\r\n" +
                $"      <command> - The name of the command to display help for.";
     }
