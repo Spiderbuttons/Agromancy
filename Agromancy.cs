@@ -85,9 +85,14 @@ namespace Agromancy
                 });
             }
             
-            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AgrometerRing"))
+            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AgrometerFrame"))
             {
                 e.LoadFromModFile<Texture2D>("assets/menuBG_Leafy.png", AssetLoadPriority.Exclusive);
+            }
+            
+            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AgrometerRings"))
+            {
+                e.LoadFromModFile<Texture2D>("assets/menuBG_circles.png", AssetLoadPriority.Exclusive);
             }
         }
         
