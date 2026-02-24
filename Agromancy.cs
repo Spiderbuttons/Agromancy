@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using GenericModConfigMenu;
 using HarmonyLib;
@@ -11,7 +12,9 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using Agromancy.Helpers;
 using Agromancy.Commands;
+using Agromancy.Menus;
 using Agromancy.Models;
+using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using StardewValley.GameData.Crops;
 using StardewValley.TerrainFeatures;
@@ -26,6 +29,14 @@ namespace Agromancy
         private static CommandHandler CommandHandler { get; set; } = null!;
         internal static ModConfig Config { get; set; } = null!;
         internal static Harmony Harmony { get; set; } = null!;
+        
+        /* Shaders */
+        public static Effect BlendFx = null!;
+        
+        private static RenderTarget2D uiScreen = null;
+        private static RenderTarget2D sceneScreen = null;
+        
+        internal static string UNIQUE_ID => Manifest.UniqueID;
 
         internal static CropManager CropManager { get; set; } = null!;
 
@@ -39,6 +50,15 @@ namespace Agromancy
             CommandHandler.Register();
             Config = helper.ReadConfig<ModConfig>();
             Harmony = new Harmony(ModManifest.UniqueID);
+            
+            try {
+                byte[] stream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/fx/blend.mgfx"));
+                BlendFx = new Effect(Game1.graphics.GraphicsDevice, stream);
+            }
+            catch (Exception e)
+            {
+                Log.Error("Unable to load blur shader: " + e);
+            }
 
             Harmony.PatchAll();
 
@@ -64,6 +84,31 @@ namespace Agromancy
                     data["472"].HarvestMinQuality = 2;
                 });
             }
+            
+            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AgrometerRing"))
+            {
+                e.LoadFromModFile<Texture2D>("assets/menuBG_Leafy.png", AssetLoadPriority.Exclusive);
+            }
+        }
+        
+        public void EnsureBuffers(RenderTarget2D worldSource, bool reallocate = false)
+        {
+            // we probably don't need to null coalesce here, but better safe
+            // than sorry
+            int sw = (worldSource ?? Game1.game1.screen).Width;
+            int sh = (worldSource ?? Game1.game1.screen).Height;
+            if (reallocate || sceneScreen is null || 
+                (sceneScreen.Width != sw || sceneScreen.Height != sh)) {
+                sceneScreen?.Dispose();
+                sceneScreen = new(Game1.graphics.GraphicsDevice, sw, sh);
+            }
+            int uw = Game1.game1.uiScreen.Width;
+            int uh = Game1.game1.uiScreen.Height;
+            if (reallocate || uiScreen is null || 
+                (uiScreen.Width != uw || uiScreen.Height != uh)) {
+                uiScreen?.Dispose();
+                uiScreen = new(Game1.graphics.GraphicsDevice, uw, uh);
+            }
         }
 
         private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
@@ -73,7 +118,10 @@ namespace Agromancy
 
             if (e.Button is SButton.F8)
             {
-                ModHelper.GameContent.InvalidateCache("Data/Crops");
+                if (Game1.activeClickableMenu is not null)
+                {
+                    Game1.activeClickableMenu = null;
+                } else Game1.activeClickableMenu = new AgrometerMenu();
             }
 
             if (e.Button is SButton.F3)
