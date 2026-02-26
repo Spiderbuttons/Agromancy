@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using Agromancy.Helpers;
 using Agromancy.Models;
 using Microsoft.Xna.Framework;
@@ -10,14 +10,20 @@ using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
-using Object = StardewValley.Object;
 
 namespace Agromancy.Menus;
 
 public class AgrometerMenu : IClickableMenu
 {
+    private class EssenceParticle
+    {
+        private static Texture2D particleTexture => Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/EssenceParticle");
+    }
+    
     private Texture2D agrometerFrame;
-    private Texture2D agrometerRings;
+    private Texture2D agrometerCircles;
+    private Texture2D agrometerStatRing;
+    
     private bool menuMovingDown;
     private int menuPositionOffset;
     List<Item> agromancyCrops => GetItemsWithAgromancyData();
@@ -25,7 +31,8 @@ public class AgrometerMenu : IClickableMenu
     public AgrometerMenu()
     {
         agrometerFrame = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerFrame");
-        agrometerRings = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerRings");
+        agrometerCircles = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerCircles");
+        agrometerStatRing = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerStatRing");
     }
 
     public override void receiveGamePadButton(Buttons button)
@@ -103,17 +110,15 @@ public class AgrometerMenu : IClickableMenu
         b.End();
         DrawAgrometerBackground(b);
 
-        b.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.PointClamp,
-            DepthStencilState.Default,
-            RasterizerState.CullNone);
+        b.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
 
         b.Draw(
-            texture: agrometerRings,
+            texture: agrometerCircles,
             position: GetAgrometerCenter(),
-            sourceRectangle: new Rectangle(0, 0, agrometerRings.Width, agrometerRings.Height),
+            sourceRectangle: new Rectangle(0, 0, agrometerCircles.Width, agrometerCircles.Height),
             color: Color.White * 0.5f,
             rotation: 0f,
-            origin: new Vector2(agrometerRings.Width / 2f, agrometerRings.Height / 2f),
+            origin: new Vector2(agrometerCircles.Width / 2f, agrometerCircles.Height / 2f),
             scale: GetAgrometerRingScale(),
             effects: SpriteEffects.None,
             layerDepth: 0.86f
@@ -153,9 +158,10 @@ public class AgrometerMenu : IClickableMenu
     {
         //(°o,88,o° )/\\\\ aaah a spider
 
-        Color mainColour = Color.MidnightBlue;
-        Color secondaryColour = Color.Green;
-        Color centerColour = Color.DarkOliveGreen;
+        Color mainColour = Color.BlueViolet;
+        Color secondaryColour = Color.LawnGreen;
+        Color centerColour = Color.Transparent;
+        float colourLerp = 0.25f;
 
         BasicEffect basicEffect = new(Game1.graphics.GraphicsDevice);
         basicEffect.VertexColorEnabled = true;
@@ -185,11 +191,11 @@ public class AgrometerMenu : IClickableMenu
             triangles.Add(new VertexPositionColor(center, centerColour * 0.9f));
             Vector3 point = pointsAroundAgrometer[i];
             triangles.Add(
-                new VertexPositionColor(point, Color.Lerp(mainColour, secondaryColour, 0.15f) * 0.75f));
+                new VertexPositionColor(point, Color.Lerp(mainColour, secondaryColour, colourLerp) * 0.75f));
             Vector3 nextPoint =
                 pointsAroundAgrometer[(i - 2 + pointsAroundAgrometer.Count) % pointsAroundAgrometer.Count];
             triangles.Add(new VertexPositionColor(nextPoint,
-                Color.Lerp(mainColour, secondaryColour, 0.15f) * 0.75f));
+                Color.Lerp(mainColour, secondaryColour, colourLerp) * 0.75f));
         }
 
         foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
@@ -215,19 +221,12 @@ public class AgrometerMenu : IClickableMenu
 
     private Vector2 GetAgrometerRingScale()
     {
-        float scale = (Game1.viewport.Height / 1.55f) / agrometerRings.Height;
+        float scale = (Game1.viewport.Height / 1.55f) / agrometerCircles.Height;
         return new Vector2(scale, scale);
     }
 
     private void drawCurrentCropEssences(SpriteBatch b)
     {
-        var selectedCrop = agromancyCrops.ElementAtOrDefault(2);
-        if (selectedCrop is null) return;
-        
-        CropEssences? essences = CropManager.GrabEssences(selectedCrop);
-        if (essences is null) return;
-        
-        // The circles to draw the essences in are arranged in a circle around the center of the agrometer
         int angleStep = 360 / 8;
         Vector2 agrometerScale = GetAgrometerScale();
         float radius = (agrometerFrame.Width * agrometerScale.X) / 3.755f;
@@ -241,31 +240,67 @@ public class AgrometerMenu : IClickableMenu
             new(center.X + (3 * agrometerScale.X) + radius * (float)Math.Cos(MathHelper.ToRadians(angleStep * 5)), center.Y + (10 * agrometerScale.X) + radius * (float)Math.Sin(MathHelper.ToRadians(angleStep * 5))),
             new(center.X + -(3 * agrometerScale.X) + radius * (float)Math.Cos(MathHelper.ToRadians(angleStep * 7)), center.Y + (10 * agrometerScale.X) + radius * (float)Math.Sin(MathHelper.ToRadians(angleStep * 7)))
         ];
-
+        
+        var selectedCrop = agromancyCrops.ElementAtOrDefault(2);
+        CropEssences? essences = selectedCrop is not null ? CropManager.GrabEssences(selectedCrop) : null;
+        
         for (var index = 0; index < statPositions.Count; index++)
         {
             var pos = statPositions[index];
+            if (selectedCrop is null || essences is null) goto drawStatRings;
             byte essenceValue = index switch
             {
                 0 => essences.YieldEssence,
-                1 => (byte)(essences.QualityEssence.Sum(b => b) / essences.QualityEssence.Length),
+                1 => (byte)(essences.QualityEssence.Sum(byt => byt) / essences.QualityEssence.Length),
                 2 => essences.GrowthEssence,
                 3 => essences.GiantEssence,
-                4 => (byte)(255 - essences.WaterEssence),
+                4 => essences.WaterEssence,
                 5 => essences.SeedEssence,
                 _ => (byte)0
             };
             Color essenceColour = index switch
             {
-                0 => Color.Gold,
-                1 => Color.GreenYellow,
-                2 => Color.Orange,
-                3 => Color.Purple,
-                4 => Color.Cyan,
-                5 => Color.Magenta,
+                0 => Color.Red, // Yield
+                1 => Color.Purple, // Quality
+                2 => Color.Green, // Growth
+                3 => Color.Pink, // Giant
+                4 => Color.DeepSkyBlue, // Water
+                5 => Color.RosyBrown, // Seed
                 _ => Color.White
             };
-            drawCircle(pos, 12f * agrometerScale.X, 120, [essenceColour, essenceColour * 0.5f, Color.Transparent], essenceValue / 255f);
+            drawCircle(pos, 12f * agrometerScale.X, 120, [Color.Transparent, essenceColour * 0.25f, essenceColour], Math.Max(0.25f, essenceValue / 255f));
+            
+            b.End();
+            b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
+            float percentOfMax = essenceValue / 255f;
+            float stringLength = Game1.tinyFont.MeasureString(percentOfMax.ToString(CultureInfo.InvariantCulture)).X + 2; // The extra 2 is to account for the black outline.
+            Vector2 textPosition = pos - new Vector2(stringLength / 2f * GetAgrometerScale().X, 0);
+            Utility.drawTinyDigits(
+                toDraw: (int)(percentOfMax * 100),
+                b: b,
+                position: textPosition,
+                scale: GetAgrometerScale().X,
+                layerDepth: 10f,
+                c: Color.White);
+            b.End();
+            b.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
+
+            drawStatRings:
+            b.End();
+            b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullNone);
+            b.Draw(
+                texture: agrometerStatRing,
+                position: pos,
+                sourceRectangle: new Rectangle(0, 0, agrometerStatRing.Width, agrometerStatRing.Height),
+                color: Color.White * 0.75f,
+                rotation: 0f,
+                origin: new Vector2(agrometerStatRing.Width / 2f, agrometerStatRing.Height / 2f),
+                scale: GetAgrometerScale().X * 0.125f * 0.5f,
+                effects: SpriteEffects.None,
+                layerDepth: 0.87f
+            );
+            b.End();
+            b.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
         }
     }
 
@@ -273,6 +308,7 @@ public class AgrometerMenu : IClickableMenu
     {
         BasicEffect basicEffect = new(Game1.graphics.GraphicsDevice);
         basicEffect.VertexColorEnabled = true;
+        basicEffect.EmissiveColor = Color.Lerp(colours[1], colours[2], lerp).ToVector3();
 
         Vector3 centerVec3 = PrimitiveNormalize(center);
 
@@ -282,19 +318,19 @@ public class AgrometerMenu : IClickableMenu
         for (int i = 0; i < 360; i += 360 / resolution)
         {
             Vector2 pointOnCircle = new Vector2(
-                center.X + radius * (0.1f + lerp) * (float)Math.Cos(MathHelper.ToRadians(i)),
-                center.Y + radius * (0.1f + lerp) * (float)Math.Sin(MathHelper.ToRadians(i))
+                center.X + radius * (float)Math.Cos(MathHelper.ToRadians(i)),
+                center.Y + radius * (float)Math.Sin(MathHelper.ToRadians(i))
             );
             pointsAroundCenter.Add(PrimitiveNormalize(pointOnCircle));
         }
 
         for (int i = pointsAroundCenter.Count - 1; i >= 0; i -= 2)
         {
-            triangles.Add(new VertexPositionColor(centerVec3, colours[0] * 0.9f));
+            triangles.Add(new VertexPositionColor(centerVec3, Color.Lerp(colours[0], colours[1], lerp) * 0.9f));
             Vector3 point = pointsAroundCenter[i];
-            triangles.Add(new VertexPositionColor(point, Color.Lerp(colours[2], colours[1], lerp) * 0.75f));
+            triangles.Add(new VertexPositionColor(point, Color.Lerp(colours[1], colours[2], lerp) * 0.5f));
             Vector3 nextPoint = pointsAroundCenter[(i - 2 + pointsAroundCenter.Count) % pointsAroundCenter.Count];
-            triangles.Add(new VertexPositionColor(nextPoint, Color.Lerp(colours[2], colours[1], lerp) * 0.75f));
+            triangles.Add(new VertexPositionColor(nextPoint, Color.Lerp(colours[1], colours[2], lerp) * 0.5f));
         }
 
         foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
@@ -308,7 +344,6 @@ public class AgrometerMenu : IClickableMenu
     private void drawItemSlots(SpriteBatch b)
     {
         Vector2 startPosition = GetAgrometerCenter();
-        // the 2 index slot is in the center. the others are above and below it, with decreasing distance as they get further from the center
         for (int i = 0; i < 5; i++)
         {
             Texture2D itemSlotTexture = Game1.uncoloredMenuTexture;
@@ -332,7 +367,7 @@ public class AgrometerMenu : IClickableMenu
                 texture: itemSlotTexture,
                 position: slotPosition,
                 sourceRectangle: itemSlotSourceRect,
-                color: Color.SteelBlue * 0.55f * (1f - 0.35f * Math.Abs(2 - i)),
+                color: Color.PaleVioletRed * 1f * (1f - 0.35f * Math.Abs(2 - i)),
                 rotation: 0f,
                 origin: new Vector2(itemSlotSourceRect.Width / 2f, itemSlotSourceRect.Height / 2f),
                 scale: GetItemSlotScale(i),
@@ -354,13 +389,16 @@ public class AgrometerMenu : IClickableMenu
                     scale: GetItemSlotScale(i) * 4f * 0.6f,
                     effects: SpriteEffects.None,
                     layerDepth: 0.51f);
-                // Draw the stack size in the bottom right corner of the item
+                
                 if (i is 2)
                 {
+                    float stringLength = Game1.tinyFont.MeasureString(item.Stack.ToString()).X + 2; // The extra 2 is to account for the black outline.
+                    // Center the stack beneath the item
+                    Vector2 textPosition = GetAgrometerCenter() - new Vector2(stringLength / 2f - itemSlotSourceRect.Width / 4f, -12f) * GetItemSlotScale(i);
                     Utility.drawTinyDigits(
                         toDraw: item.Stack,
                         b: b,
-                        position: slotPosition + new Vector2(24f, 20f),
+                        position: textPosition,
                         scale: GetItemSlotScale(i).X * 2f,
                         layerDepth: 0.52f,
                         c: Color.White);
@@ -378,6 +416,13 @@ public class AgrometerMenu : IClickableMenu
                 // item.drawInMenu(b, slotPosition - new Vector2(32f, 32f), GetItemSlotScale(i).X * 0.5f);
             }
         }
+    }
+    
+    private void drawTextCenteredAtPoint(SpriteBatch b, string text, Vector2 point, SpriteFont font, Color color, float scale, float layerDepth)
+    {
+        Vector2 textSize = font.MeasureString(text) * scale;
+        Vector2 textPosition = point - textSize / 2f;
+        b.DrawString(font, text, textPosition, color, 0f, Vector2.Zero, scale, SpriteEffects.None, layerDepth);
     }
 
     private Vector2 GetItemSlotScale(int index)

@@ -33,9 +33,6 @@ namespace Agromancy
         /* Shaders */
         public static Effect BlendFx = null!;
         
-        private static RenderTarget2D uiScreen = null;
-        private static RenderTarget2D sceneScreen = null;
-        
         internal static string UNIQUE_ID => Manifest.UniqueID;
 
         internal static CropManager CropManager { get; set; } = null!;
@@ -90,29 +87,14 @@ namespace Agromancy
                 e.LoadFromModFile<Texture2D>("assets/menuBG_Leafy.png", AssetLoadPriority.Exclusive);
             }
             
-            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AgrometerRings"))
+            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AgrometerCircles"))
             {
                 e.LoadFromModFile<Texture2D>("assets/menuBG_circles.png", AssetLoadPriority.Exclusive);
             }
-        }
-        
-        public void EnsureBuffers(RenderTarget2D worldSource, bool reallocate = false)
-        {
-            // we probably don't need to null coalesce here, but better safe
-            // than sorry
-            int sw = (worldSource ?? Game1.game1.screen).Width;
-            int sh = (worldSource ?? Game1.game1.screen).Height;
-            if (reallocate || sceneScreen is null || 
-                (sceneScreen.Width != sw || sceneScreen.Height != sh)) {
-                sceneScreen?.Dispose();
-                sceneScreen = new(Game1.graphics.GraphicsDevice, sw, sh);
-            }
-            int uw = Game1.game1.uiScreen.Width;
-            int uh = Game1.game1.uiScreen.Height;
-            if (reallocate || uiScreen is null || 
-                (uiScreen.Width != uw || uiScreen.Height != uh)) {
-                uiScreen?.Dispose();
-                uiScreen = new(Game1.graphics.GraphicsDevice, uw, uh);
+            
+            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AgrometerStatRing"))
+            {
+                e.LoadFromModFile<Texture2D>("assets/menu_StatRing.png", AssetLoadPriority.Exclusive);
             }
         }
 
@@ -127,6 +109,20 @@ namespace Agromancy
                 {
                     Game1.activeClickableMenu = null;
                 } else Game1.activeClickableMenu = new AgrometerMenu();
+            }
+            
+            if (e.Button is SButton.F5 && Game1.player.ActiveObject is not null)
+            {
+                Game1.player.ActiveObject.modData[Manifest.UniqueID] = JsonConvert.SerializeObject(new CropEssences
+                {
+                    YieldEssence = 255,
+                    QualityEssence = [255, 255, 255],
+                    GrowthEssence = 255,
+                    GiantEssence = 255,
+                    WaterEssence = 255,
+                    SeedEssence = 255
+                });
+                Log.Info("Added Agromancy data to held item.");
             }
 
             if (e.Button is SButton.F3)

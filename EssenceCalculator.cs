@@ -111,7 +111,7 @@ public static class EssenceCalculator
     
     public static byte DefaultWaterEssence(AgroCropReference cropRef)
     {
-        return (byte)(cropRef.CropData.NeedsWatering ? 255 : 0);
+        return (byte)(cropRef.CropData.NeedsWatering ? 0 : 255);
     }
     
     public static byte DefaultSeedEssence(AgroCropReference cropRef)
