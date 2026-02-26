@@ -89,12 +89,17 @@ namespace Agromancy
             
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AgrometerCircles"))
             {
-                e.LoadFromModFile<Texture2D>("assets/menuBG_circles.png", AssetLoadPriority.Exclusive);
+                e.LoadFromModFile<Texture2D>("assets/menuBG_circles_empty.png", AssetLoadPriority.Exclusive);
             }
             
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AgrometerStatRing"))
             {
                 e.LoadFromModFile<Texture2D>("assets/menu_StatRing.png", AssetLoadPriority.Exclusive);
+            }
+            
+            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/MonochromeArrows")) 
+            {
+                e.LoadFromModFile<Texture2D>("assets/arrows.png", AssetLoadPriority.Exclusive);
             }
         }
 
