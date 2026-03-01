@@ -19,6 +19,8 @@ public class AgrometerMenu : IClickableMenu
     {
         private static Texture2D particleTexture => Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/EssenceParticle");
     }
+
+    public int MillisecondsMenuHasBeenOpen;
     
     private Texture2D agrometerFrame;
     private Texture2D agrometerCircles;
@@ -31,7 +33,7 @@ public class AgrometerMenu : IClickableMenu
     private Rectangle DownArrowSourceRect => new(11, 0, 11, 12);
     private Rectangle LeftArrowSourceRect => new(22, 0, 12, 12);
     private Rectangle RightArrowSourceRect => new(34, 0, 12, 12);
-
+    
     public ClickableTextureComponent UpArrow;
     public ClickableTextureComponent DownArrow;
     
@@ -39,9 +41,42 @@ public class AgrometerMenu : IClickableMenu
 
     public AgrometerMenu()
     {
+        MillisecondsMenuHasBeenOpen = Game1.currentGameTime.TotalGameTime.Milliseconds;
+        
         agrometerFrame = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerFrame");
         agrometerCircles = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerCircles");
         agrometerStatRing = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerStatRing");
+        
+        Rectangle upArrowLocation = new Rectangle(
+            x: (int)(GetAgrometerCenter().X - 2 - (UpArrowSourceRect.Width) * GetAgrometerScale().X),
+            y: (int)(GetAgrometerCenter().Y - (agrometerFrame.Height / 3f) * GetAgrometerScale().Y - (UpArrowSourceRect.Height) * GetAgrometerScale().Y),
+            width: (int)(UpArrowSourceRect.Width * GetAgrometerScale().X * 2f),
+            height: (int)(UpArrowSourceRect.Height * GetAgrometerScale().Y * 2f)
+        );
+        
+        Rectangle downArrowLocation = new Rectangle(
+            (int)(GetAgrometerCenter().X - 2 - (DownArrowSourceRect.Width) * GetAgrometerScale().X),
+            (int)(GetAgrometerCenter().Y + (agrometerFrame.Height / 3f) * GetAgrometerScale().Y - (DownArrowSourceRect.Height) * GetAgrometerScale().Y),
+            (int)(DownArrowSourceRect.Width * GetAgrometerScale().X * 2f),
+            (int)(DownArrowSourceRect.Height * GetAgrometerScale().Y * 2f)
+        );
+        
+        UpArrow = new ClickableTextureComponent(
+            name: "UpArrow",
+            bounds: upArrowLocation,
+            label: null,
+            hoverText: "Previous Crop",
+            texture: ArrowsTexture,
+            sourceRect: UpArrowSourceRect,
+            scale: GetAgrometerScale().X * 2f);
+        DownArrow = new ClickableTextureComponent(
+            name: "DownArrow",
+            bounds: downArrowLocation,
+            label: null,
+            hoverText: "Next Crop",
+            texture: ArrowsTexture,
+            sourceRect: DownArrowSourceRect,
+            scale: GetAgrometerScale().X * 2f);
     }
 
     public override void receiveGamePadButton(Buttons button)
@@ -251,14 +286,14 @@ public class AgrometerMenu : IClickableMenu
         return Color.PaleVioletRed;
     }
 
-    private Vector2 GetAgrometerCenter()
+    public Vector2 GetAgrometerCenter()
     {
         float x = Game1.viewport.Width / 2f;
         float y = Game1.viewport.Height / 2f;
         return new Vector2(x, y);
     }
 
-    private Vector2 GetAgrometerScale()
+    public Vector2 GetAgrometerScale()
     {
         float scale = (Game1.viewport.Height / 1.25f) / agrometerFrame.Height;
         return new Vector2(scale, scale);
@@ -272,29 +307,32 @@ public class AgrometerMenu : IClickableMenu
 
     private void drawArrows(SpriteBatch b)
     {
-        b.Draw(
-            texture: ArrowsTexture,
-            position: GetAgrometerCenter() + new Vector2(-2, (-agrometerFrame.Height / 3f) * GetAgrometerScale().Y),
-            sourceRectangle: UpArrowSourceRect,
-            color: Color.Lerp(GetAgrometerMainColour(), GetItemSlotColour(), 0.725f),
-            rotation: 0f,
-            origin: new Vector2(UpArrowSourceRect.Width / 2f, UpArrowSourceRect.Height / 2f),
-            scale: GetAgrometerScale() * 2f,
-            effects: SpriteEffects.None,
-            layerDepth: 0.87f
-        );
-        
-        b.Draw(
-            texture: ArrowsTexture,
-            position: GetAgrometerCenter() + new Vector2(-2, (agrometerFrame.Height / 3f) * GetAgrometerScale().Y),
-            sourceRectangle: DownArrowSourceRect,
-            color: Color.Lerp(GetAgrometerMainColour(), GetItemSlotColour(), 0.725f),
-            rotation: 0f,
-            origin: new Vector2(DownArrowSourceRect.Width / 2f, DownArrowSourceRect.Height / 2f),
-            scale: GetAgrometerScale() * 2f,
-            effects: SpriteEffects.None,
-            layerDepth: 0.87f
-        );
+        UpArrow.draw(b);
+        DownArrow.draw(b);
+
+        // b.Draw(
+        //     texture: ArrowsTexture,
+        //     position: GetAgrometerCenter() + new Vector2(-2, (-agrometerFrame.Height / 3f) * GetAgrometerScale().Y),
+        //     sourceRectangle: UpArrowSourceRect,
+        //     color: Color.Lerp(GetAgrometerMainColour(), GetItemSlotColour(), 0.725f),
+        //     rotation: 0f,
+        //     origin: new Vector2(UpArrowSourceRect.Width / 2f, UpArrowSourceRect.Height / 2f),
+        //     scale: GetAgrometerScale() * 2f,
+        //     effects: SpriteEffects.None,
+        //     layerDepth: 0.87f
+        // );
+        //
+        // b.Draw(
+        //     texture: ArrowsTexture,
+        //     position: GetAgrometerCenter() + new Vector2(-2, (agrometerFrame.Height / 3f) * GetAgrometerScale().Y),
+        //     sourceRectangle: DownArrowSourceRect,
+        //     color: Color.Lerp(GetAgrometerMainColour(), GetItemSlotColour(), 0.725f),
+        //     rotation: 0f,
+        //     origin: new Vector2(DownArrowSourceRect.Width / 2f, DownArrowSourceRect.Height / 2f),
+        //     scale: GetAgrometerScale() * 2f,
+        //     effects: SpriteEffects.None,
+        //     layerDepth: 0.87f
+        // );
     }
 
     private void drawCurrentCropEssences(SpriteBatch b)
@@ -425,26 +463,30 @@ public class AgrometerMenu : IClickableMenu
 
     private Vector2 GetItemSlotScale(int index)
     {
-        return index switch
+        Vector2 baseScale = index switch
         {
             0 or 4 => new Vector2(.5f, .5f),
             1 or 3 => new Vector2(1f, 1f),
             2 => new Vector2(1.5f, 1.5f),
             _ => new Vector2(1f, 1f)
         };
+        float targetHeight = Game1.viewport.Height / 12f;
+        float scaleFactor = targetHeight / (Game1.getSourceRectForStandardTileSheet(Game1.menuTexture, 16).Height);
+        return baseScale * scaleFactor;
     }
 
     private Vector2 GetItemSlotVerticalOffset(int index)
     {
-        return index switch
+        Vector2 baseOffset = index switch
         {
-            0 => new Vector2(0, -135),
+            0 => new Vector2(0, -275),
             1 => new Vector2(0, -85),
             2 => new Vector2(0, 0),
             3 => new Vector2(0, 85),
-            4 => new Vector2(0, 135),
+            4 => new Vector2(0, 275),
             _ => new Vector2(0, 0)
         };
+        return baseOffset * GetItemSlotScale(index);
     }
 
     public override void drawBackground(SpriteBatch b)
@@ -470,7 +512,7 @@ public class AgrometerMenu : IClickableMenu
 
     public override void update(GameTime time)
     {
-        //
+        MillisecondsMenuHasBeenOpen += time.ElapsedGameTime.Milliseconds;
     }
 
     public override void cleanupBeforeExit()
