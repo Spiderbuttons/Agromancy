@@ -32,10 +32,14 @@ namespace Agromancy
         internal static Harmony Harmony { get; set; } = null!;
 
         internal static Texture2D? ScreenTexture { get; set; } = null!;
+        
+        internal static Texture2D PerlinNoise { get; set; } = null!;
 
         /* Shaders */
         public static Effect GrayscaleFx = null!;
         public static Effect BlurFx = null!;
+        public static Effect StatsFx = null!;
+        public static Effect LiquidCircleFx = null!;
 
         internal static string UNIQUE_ID => Manifest.UniqueID;
 
@@ -51,6 +55,8 @@ namespace Agromancy
             CommandHandler.Register();
             Config = helper.ReadConfig<ModConfig>();
             Harmony = new Harmony(ModManifest.UniqueID);
+            
+            PerlinNoise = Helper.ModContent.Load<Texture2D>("assets/noiseTexture.png");
 
             try
             {
@@ -58,6 +64,10 @@ namespace Agromancy
                 GrayscaleFx = new Effect(Game1.graphics.GraphicsDevice, stream);
                 byte[] blurStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/blur.mgfx"));
                 BlurFx = new Effect(Game1.graphics.GraphicsDevice, blurStream);
+                byte[] statsStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/stats.mgfx"));
+                StatsFx = new Effect(Game1.graphics.GraphicsDevice, statsStream);
+                byte[] liquidCircleStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/liquidcircle.mgfx"));
+                LiquidCircleFx = new Effect(Game1.graphics.GraphicsDevice, liquidCircleStream);
             }
             catch (Exception e)
             {
@@ -169,6 +179,24 @@ namespace Agromancy
                 effects: SpriteEffects.None,
                 layerDepth: 0.9f
             );
+            
+            e.SpriteBatch.End();
+            e.SpriteBatch.Begin(
+                SpriteSortMode.Deferred,
+                BlendState.AlphaBlend,
+                SamplerState.PointClamp
+            );
+            //
+            // e.SpriteBatch.Draw(
+            //     texture: Game1.staminaRect,
+            //     destinationRectangle: e.SpriteBatch.GraphicsDevice.Viewport.Bounds,
+            //     sourceRectangle: null,
+            //     color: Color.White * 0f,
+            //     rotation: 0f,
+            //     origin: Vector2.Zero,
+            //     effects: SpriteEffects.None,
+            //     layerDepth: 0.9f
+            // );
         }
 
         private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
@@ -179,6 +207,7 @@ namespace Agromancy
             if (e.Button is SButton.F8)
             {
                 ScreenTexture = null;
+                PerlinNoise = Helper.ModContent.Load<Texture2D>("assets/noiseTexture.png");
                 if (Game1.activeClickableMenu is not null)
                 {
                     Game1.activeClickableMenu = null;

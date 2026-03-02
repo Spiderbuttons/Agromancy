@@ -46,4 +46,10 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="fx\Grayscale.mgfx" />
+      <None Remove="fx\Blur.mgfx" />
+      <None Remove="fx\stats.mgfx" />
+    </ItemGroup>
 </Project>

@@ -15,11 +15,6 @@ namespace Agromancy.Menus;
 
 public class AgrometerMenu : IClickableMenu
 {
-    private class EssenceParticle
-    {
-        private static Texture2D particleTexture => Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/EssenceParticle");
-    }
-
     public int MillisecondsMenuHasBeenOpen;
     
     private Texture2D agrometerFrame;
@@ -27,6 +22,9 @@ public class AgrometerMenu : IClickableMenu
     private Texture2D agrometerStatRing;
 
     private int itemListOffset = 0;
+    
+    private float targetEssencePct = 0f;
+    private float currentEssencePct = 0f;
     
     private Texture2D ArrowsTexture => Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/MonochromeArrows");
     private Rectangle UpArrowSourceRect => new(0, 0, 11, 12);
@@ -210,8 +208,9 @@ public class AgrometerMenu : IClickableMenu
             layerDepth: 0.86f
         );
         
-        drawItemSlots(b);
         drawCurrentCropEssences(b);
+        
+        drawItemSlots(b);
         drawArrows(b);
 
         drawMouse(b);
@@ -309,36 +308,151 @@ public class AgrometerMenu : IClickableMenu
     {
         UpArrow.draw(b);
         DownArrow.draw(b);
-
-        // b.Draw(
-        //     texture: ArrowsTexture,
-        //     position: GetAgrometerCenter() + new Vector2(-2, (-agrometerFrame.Height / 3f) * GetAgrometerScale().Y),
-        //     sourceRectangle: UpArrowSourceRect,
-        //     color: Color.Lerp(GetAgrometerMainColour(), GetItemSlotColour(), 0.725f),
-        //     rotation: 0f,
-        //     origin: new Vector2(UpArrowSourceRect.Width / 2f, UpArrowSourceRect.Height / 2f),
-        //     scale: GetAgrometerScale() * 2f,
-        //     effects: SpriteEffects.None,
-        //     layerDepth: 0.87f
-        // );
-        //
-        // b.Draw(
-        //     texture: ArrowsTexture,
-        //     position: GetAgrometerCenter() + new Vector2(-2, (agrometerFrame.Height / 3f) * GetAgrometerScale().Y),
-        //     sourceRectangle: DownArrowSourceRect,
-        //     color: Color.Lerp(GetAgrometerMainColour(), GetItemSlotColour(), 0.725f),
-        //     rotation: 0f,
-        //     origin: new Vector2(DownArrowSourceRect.Width / 2f, DownArrowSourceRect.Height / 2f),
-        //     scale: GetAgrometerScale() * 2f,
-        //     effects: SpriteEffects.None,
-        //     layerDepth: 0.87f
-        // );
     }
 
     private void drawCurrentCropEssences(SpriteBatch b)
     {
-        var selectedCrop = agromancyCrops.ElementAtOrDefault(2);
-        CropEssences? essences = selectedCrop is not null ? CropManager.GrabEssences(selectedCrop) : null;
+        CropEssences? essences = agromancyCrops.ElementAtOrDefault((2 + itemListOffset) % agromancyCrops.Count) is not null
+            ? CropManager.GrabEssences(agromancyCrops.ElementAtOrDefault((2 + itemListOffset) % agromancyCrops.Count)!)
+            : null;
+        
+        Effect StatsFx = Agromancy.StatsFx;
+        
+        StatsFx.Parameters["PerlinNoise"].SetValue(Agromancy.PerlinNoise);
+        StatsFx.Parameters["Resolution"].SetValue(new Vector2(Game1.viewport.Width, Game1.viewport.Height));
+        StatsFx.Parameters["BlobCenter"].SetValue(new Vector2(GetAgrometerCenter().X / Game1.viewport.Width, GetAgrometerCenter().Y / Game1.viewport.Height));
+        StatsFx.Parameters["BlobMinRadius"].SetValue(Game1.viewport.Height * 0.15f);
+        StatsFx.Parameters["BlobMaxRadius"].SetValue(Game1.viewport.Height * 0.5f);
+        // StatsFx.Parameters["StatPercentage"].SetValue((float)(Game1.getMousePosition().X / (float)Game1.viewport.Width));
+        StatsFx.Parameters["StatPercentage"].SetValue(currentEssencePct);
+        StatsFx.Parameters["UseNoiseColour"].SetValue(true);
+        StatsFx.Parameters["FadeOut"].SetValue(true);
+        StatsFx.Parameters["Saturation"].SetValue(1.75f);
+        StatsFx.Parameters["Time"].SetValue((float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 100f);
+        
+        b.End();
+        b.Begin(
+            SpriteSortMode.Deferred,
+            BlendState.AlphaBlend,
+            SamplerState.PointClamp,
+            effect: StatsFx
+        );
+            
+        b.Draw(
+            texture: Game1.staminaRect,
+            destinationRectangle: b.GraphicsDevice.Viewport.Bounds,
+            sourceRectangle: null,
+            color: Color.White * 0f,
+            rotation: 0f,
+            origin: Vector2.Zero,
+            effects: SpriteEffects.None,
+            layerDepth: 0.9f
+        );
+        
+        b.End();
+
+        Agromancy.LiquidCircleFx.Parameters["Resolution"].SetValue(GetAgrometerScale() * agrometerStatRing.Bounds.Size.ToVector2());
+        Agromancy.LiquidCircleFx.Parameters["PerlinNoise"].SetValue(Agromancy.PerlinNoise);
+        Agromancy.LiquidCircleFx.Parameters["CircleRadius"].SetValue(agrometerStatRing.Width / 2f * GetAgrometerScale().X * 0.95f);
+
+        
+        
+        // This loop'll place these stat rings nicely on a circle around the center. Those extra radians are just me hardcoding some tweaked positioning to not cover my pretty leaves and vines. (:
+        int essenceIndex = 0;
+        for (int i = -1; i < 8; i++)
+        {
+            if (i is >= 2 and <= 4) continue;
+            Vector2 position = GetAgrometerCenter() + new Vector2(
+                (float)Math.Cos(MathHelper.ToRadians(i * 30) - MathHelper.ToRadians(7.5f * (i < 2 ? -1 : 1))) * (agrometerFrame.Width / 2.35f) * GetAgrometerScale().X,
+                (float)Math.Sin(MathHelper.ToRadians(i * 30) - MathHelper.ToRadians(7.5f * (i < 2 ? -1 : 1))) * (agrometerFrame.Height / 2.35f) * GetAgrometerScale().Y
+            );
+            
+            float FillPercentage = EssenceCalculator.GetEssencePercent(essences, essenceIndex) + 0.05f;
+            float waviness = 200f * (float)Math.Pow(FillPercentage, 1.5f) + 0.625f;
+            
+            Agromancy.LiquidCircleFx.Parameters["Time"].SetValue((float)(Game1.currentGameTime.TotalGameTime
+                .TotalMilliseconds) / 500f);
+            
+            Agromancy.LiquidCircleFx.Parameters["yCoordOffset"].SetValue(i / 6f);
+            
+            Agromancy.LiquidCircleFx.Parameters["FillPercentage"].SetValue(0f);
+            Agromancy.LiquidCircleFx.Parameters["Waviness"].SetValue(0f);
+            
+            b.Begin(
+                SpriteSortMode.Deferred,
+                BlendState.AlphaBlend,
+                SamplerState.PointClamp,
+                effect: Agromancy.LiquidCircleFx
+            );
+            
+            b.Draw(
+                texture: Game1.staminaRect,
+                position: position,
+                sourceRectangle: null,
+                color: Color.Lerp(GetItemSlotColour(), Color.White, 0.65f) * 0.5f,
+                rotation: 0f,
+                origin: new Vector2(0.5f, 0.5f),
+                scale: GetAgrometerScale() * agrometerStatRing.Width * 0.1f,
+                effects: SpriteEffects.None,
+                layerDepth: 0.88f
+            );
+
+            b.End();
+            b.Begin(
+                SpriteSortMode.Deferred,
+                BlendState.AlphaBlend,
+                SamplerState.PointClamp,
+                effect: Agromancy.LiquidCircleFx
+            );
+            
+            Agromancy.LiquidCircleFx.Parameters["FillPercentage"].SetValue(1 - FillPercentage);
+            Agromancy.LiquidCircleFx.Parameters["Waviness"].SetValue(waviness);
+            
+            b.Draw(
+                texture: Game1.staminaRect,
+                position: position,
+                sourceRectangle: null,
+                color: Color.FromNonPremultiplied(
+                    (int)(127 + 127 * Math.Cos(MathHelper.ToRadians(i * 30))),
+                    (int)(127 + 127 * Math.Cos(MathHelper.ToRadians(i * 30 + 120))),
+                    (int)(127 + 127 * Math.Cos(MathHelper.ToRadians(i * 30 + 240))),
+                    255) * 0.85f,
+                rotation: 0f,
+                origin: new Vector2(0.5f, 0.5f),
+                scale: GetAgrometerScale() * agrometerStatRing.Width * 0.1f,
+                effects: SpriteEffects.None,
+                layerDepth: 0.88f
+            );
+
+            b.End();
+            b.Begin(
+                SpriteSortMode.Deferred,
+                BlendState.AlphaBlend,
+                SamplerState.PointClamp
+            );
+            
+            b.Draw(
+                texture: agrometerStatRing,
+                position: position,
+                sourceRectangle: new Rectangle(0, 0, agrometerStatRing.Width, agrometerStatRing.Height),
+                color: Color.White,
+                rotation: 0f,
+                origin: new Vector2(agrometerStatRing.Width / 2f, agrometerStatRing.Height / 2f),
+                scale: GetAgrometerScale() * 0.1f,
+                effects: SpriteEffects.None,
+                layerDepth: 0.89f
+            );
+
+            b.End();
+
+            essenceIndex++;
+        }
+        
+        b.Begin(
+            SpriteSortMode.Deferred,
+            BlendState.AlphaBlend,
+            SamplerState.PointClamp
+        );
     }
 
     private void drawCircle(Vector2 center, float radius, int resolution, Color[] colours, float lerp)
@@ -513,6 +627,18 @@ public class AgrometerMenu : IClickableMenu
     public override void update(GameTime time)
     {
         MillisecondsMenuHasBeenOpen += time.ElapsedGameTime.Milliseconds;
+        var selectedCrop = agromancyCrops.ElementAtOrDefault((2 + itemListOffset) % agromancyCrops.Count);
+        CropEssences? essences = selectedCrop is not null ? CropManager.GrabEssences(selectedCrop) : null;
+        
+        float pct = essences is not null ? EssenceCalculator.PercentToPerfectCrop(essences) : 0f;
+        targetEssencePct = pct;
+        if (currentEssencePct < targetEssencePct)
+        {
+            currentEssencePct = MathHelper.SmoothStep(currentEssencePct, targetEssencePct, 0.15f);
+        } else
+        {
+            currentEssencePct = MathHelper.Lerp(currentEssencePct, targetEssencePct, 0.075f);
+        }
     }
 
     public override void cleanupBeforeExit()

@@ -8,6 +8,13 @@ namespace Agromancy;
 
 public static class EssenceCalculator
 {
+    public const int YIELD_INDEX = 0;
+    public const int QUALITY_INDEX = 1;
+    public const int GROWTH_INDEX = 2;
+    public const int GIANT_INDEX = 3;
+    public const int WATER_INDEX = 4;
+    public const int SEED_INDEX = 5;
+    
     // These won't be used for essence calculations but will be used as limiters when the essences are "applied" to crops being harvested/watered/etc.
     private const int MAX_CROP_YIELD = 12;
     private const int MAX_SEED_YIELD = 4;
@@ -41,6 +48,34 @@ public static class EssenceCalculator
         if (positiveOnly) mutation = Math.Abs(mutation);
         int mutatedValue = Math.Clamp(original + mutation, 0, 255);
         return (byte)mutatedValue;
+    }
+
+    public static float PercentToPerfectCrop(CropEssences essences)
+    {
+        float yieldPercent = essences.YieldEssence / 255f;
+        float qualityPercent = (float)essences.QualityEssence.Average(x => x) / 255f;
+        float growthPercent = essences.GrowthEssence / 255f;
+        float giantPercent = essences.GiantEssence / 255f;
+        float waterPercent = essences.WaterEssence / 255f;
+        float seedPercent = essences.SeedEssence / 255f;
+        
+        float overallPercent = (yieldPercent + qualityPercent + growthPercent + giantPercent + waterPercent + seedPercent) / 6f;
+        return overallPercent;
+    }
+
+    public static float GetEssencePercent(CropEssences? essences, int idx)
+    {
+        if (essences is null) return 0f;
+        return idx switch
+        {
+            YIELD_INDEX => essences.YieldEssence / 255f,
+            QUALITY_INDEX => essences.QualityEssence.Sum(x => x) / (255f * essences.QualityEssence.Length),
+            GROWTH_INDEX => essences.GrowthEssence / 255f,
+            GIANT_INDEX => essences.GiantEssence / 255f,
+            WATER_INDEX => essences.WaterEssence / 255f,
+            SEED_INDEX => essences.SeedEssence / 255f,
+            _ => throw new ArgumentOutOfRangeException(nameof(idx), idx, null)
+        };
     }
 
     public static CropEssences DefaultEssences(AgroCropReference? cropRef)
