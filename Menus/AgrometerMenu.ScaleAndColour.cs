@@ -34,6 +34,11 @@ public partial class AgrometerMenu
         return new Vector2(scale, scale);
     }
 
+    private float GetEssenceContainerRadius()
+    {
+        return agrometerStatRing.Width / 2f * GetAgrometerScale().X;
+    }
+
     private Vector2 GetItemSlotScale(int index)
     {
         Vector2 baseScale = index switch

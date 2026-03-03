@@ -77,6 +77,21 @@ public partial class AgrometerMenu
             scale: GetItemSlotScale(2) * 0.75f,
             effects: SpriteEffects.None,
             layerDepth: 0.5f);
+
+        if (GetEssenceVial() is not { } vial) return;
+        
+        ParsedItemData iData = ItemRegistry.GetData(vial.QualifiedItemId);
+        Texture2D texture = iData.GetTexture();
+        b.Draw(
+            texture: texture,
+            position: slotPosition + new Vector2(0, -2),
+            sourceRectangle: iData.DefaultSourceRect,
+            color: Color.White,
+            rotation: 0f,
+            origin: new Vector2(iData.DefaultSourceRect.Width / 2f, iData.DefaultSourceRect.Height / 2f),
+            scale: GetItemSlotScale(2) * 4f * 0.6f * 0.75f,
+            effects: SpriteEffects.None,
+            layerDepth: 0.51f);
     }
     
     public void DrawAgrometerBackground(SpriteBatch b)
@@ -177,25 +192,14 @@ public partial class AgrometerMenu
         Agromancy.LiquidCircleFx.Parameters["Resolution"].SetValue(GetAgrometerScale() * agrometerStatRing.Bounds.Size.ToVector2());
         Agromancy.LiquidCircleFx.Parameters["PerlinNoise"].SetValue(Agromancy.PerlinNoise);
 
-        float radius = agrometerStatRing.Width / 2f * GetAgrometerScale().X * 0.95f;
+        float radius = GetEssenceContainerRadius() * 0.95f;
         Agromancy.LiquidCircleFx.Parameters["CircleRadius"].SetValue(radius);
-
         
-        
-        // This loop'll place these stat rings nicely on a circle around the center. Those extra radians are just me hardcoding some tweaked positioning to not cover my pretty leaves and vines. (:
-        int essenceIndex = 0;
-        for (int i = -1; i < 8; i++)
+        for (int i = 0; i < EssenceCenters.Values.Count; i++)
         {
-            if (i is >= 2 and <= 4) continue;
-            Vector2 position = GetAgrometerCenter() + new Vector2(
-                (float)Math.Cos(MathHelper.ToRadians(i * 30) - MathHelper.ToRadians(7.5f * (i < 2 ? -1 : 1))) * (agrometerFrame.Width / 2.35f) * GetAgrometerScale().X,
-                (float)Math.Sin(MathHelper.ToRadians(i * 30) - MathHelper.ToRadians(7.5f * (i < 2 ? -1 : 1))) * (agrometerFrame.Height / 2.35f) * GetAgrometerScale().Y
-            );
-            
-            EssenceCenters[essenceIndex] = new Vector3(position.X, position.Y, GetAgrometerScale().X *
-                                                                               (agrometerStatRing.Width / 2f) * 0.1f);
+            Vector2 position = new Vector2(EssenceCenters[i].X, EssenceCenters[i].Y);
 
-            float FillPercentage = currentEssencePct[essenceIndex];
+            float FillPercentage = currentEssencePct[i];
             // The waviness means it won't appear full even at 100%, so this next line just adds a little extra percentage for visuals.
             // More gets added the closer to 100% it is, because if I just add a flat amount, it doesn't look actually empty at 0% like it should.
             // (It won't ever look ABSOLUTELY full though because I don't want to hide my nice liquid shader wobblies...)
@@ -224,7 +228,7 @@ public partial class AgrometerMenu
                 color: Color.Lerp(GetItemSlotColour(), Color.White, 0.65f) * 0.5f,
                 rotation: 0f,
                 origin: new Vector2(0.5f, 0.5f),
-                scale: GetAgrometerScale() * agrometerStatRing.Width * 0.1f * currentEssenceScale[essenceIndex],
+                scale: GetAgrometerScale() * agrometerStatRing.Width * 0.1f * currentEssenceScale[i],
                 effects: SpriteEffects.None,
                 layerDepth: 0.88f
             );
@@ -251,7 +255,7 @@ public partial class AgrometerMenu
                     255) * 0.85f,
                 rotation: 0f,
                 origin: new Vector2(0.5f, 0.5f),
-                scale: GetAgrometerScale() * agrometerStatRing.Width * 0.1f * currentEssenceScale[essenceIndex],
+                scale: GetAgrometerScale() * agrometerStatRing.Width * 0.1f * currentEssenceScale[i],
                 effects: SpriteEffects.None,
                 layerDepth: 0.88f
             );
@@ -270,14 +274,12 @@ public partial class AgrometerMenu
                 color: Color.White,
                 rotation: 0f,
                 origin: new Vector2(agrometerStatRing.Width / 2f, agrometerStatRing.Height / 2f),
-                scale: GetAgrometerScale() * 0.1f * currentEssenceScale[essenceIndex],
+                scale: GetAgrometerScale() * 0.1f * currentEssenceScale[i],
                 effects: SpriteEffects.None,
                 layerDepth: 0.89f
             );
 
             b.End();
-
-            essenceIndex++;
         }
         
         b.Begin(

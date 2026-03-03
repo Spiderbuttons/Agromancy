@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Agromancy.Helpers;
 using Agromancy.Models;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -72,11 +73,21 @@ public partial class AgrometerMenu : IClickableMenu
             texture: ArrowsTexture,
             sourceRect: DownArrowSourceRect,
             scale: GetAgrometerScale().X * 2f);
+
+        EssenceCenters = GetEssenceCenters();
     }
 
     public override void receiveGamePadButton(Buttons button)
     {
         base.receiveGamePadButton(button);
+        
+        if (button is Buttons.DPadUp or Buttons.LeftThumbstickUp)
+        {
+            ScrollItem(-1);
+        } else if (button is Buttons.DPadDown or Buttons.LeftThumbstickDown)
+        {
+            ScrollItem(1);
+        }
     }
 
     public override void populateClickableComponentList()
@@ -103,6 +114,7 @@ public partial class AgrometerMenu : IClickableMenu
     {
         base.gameWindowSizeChanged(oldBounds, newBounds);
         shouldUpdateArrows = true;
+        EssenceCenters = GetEssenceCenters();
     }
 
     public override void releaseLeftClick(int x, int y)
@@ -113,36 +125,29 @@ public partial class AgrometerMenu : IClickableMenu
     public override void leftClickHeld(int x, int y)
     {
         base.leftClickHeld(x, y);
+        foreach (var (essenceIdx, essenceCircle) in EssenceCenters)
+        {
+            if (PointInCircle(new Vector2(x, y), new Vector2(essenceCircle.X, essenceCircle.Y), essenceCircle.Z))
+            {
+                Log.Warn("Clicking essence circle " + essenceIdx);
+            }
+        }
     }
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
         // base.receiveLeftClick(x, y, playSound);
         
-        Rectangle upArrowLocation = new Rectangle(
-            x: (int)(GetAgrometerCenter().X - 2 - (UpArrowSourceRect.Width) * GetAgrometerScale().X),
-            y: (int)(GetAgrometerCenter().Y - (agrometerFrame.Height / 3f) * GetAgrometerScale().Y - (UpArrowSourceRect.Height) * GetAgrometerScale().Y),
-            width: (int)(UpArrowSourceRect.Width * GetAgrometerScale().X * 2f),
-            height: (int)(UpArrowSourceRect.Height * GetAgrometerScale().Y * 2f)
-        );
-        
-        Rectangle downArrowLocation = new Rectangle(
-            (int)(GetAgrometerCenter().X - 2 - (DownArrowSourceRect.Width) * GetAgrometerScale().X),
-            (int)(GetAgrometerCenter().Y + (agrometerFrame.Height / 3f) * GetAgrometerScale().Y - (DownArrowSourceRect.Height) * GetAgrometerScale().Y),
-            (int)(DownArrowSourceRect.Width * GetAgrometerScale().X * 2f),
-            (int)(DownArrowSourceRect.Height * GetAgrometerScale().Y * 2f)
-        );
-        
-        if (upArrowLocation.Contains(x, y))
+        if (UpArrow.bounds.Contains(x, y) || DownArrow.bounds.Contains(x, y))
         {
-            Log.Warn("Clicked up");
-            itemListOffset = (itemListOffset - 1 + agromancyCrops.Count) % Math.Max(1, agromancyCrops.Count);
+            int direction = UpArrow.bounds.Contains(x, y) ? -1 : 1;
+            ScrollItem(direction);
         }
-        else if (downArrowLocation.Contains(x, y))
-        {
-            Log.Warn("clicked down");
-            itemListOffset = (itemListOffset + 1) % Math.Max(1, agromancyCrops.Count);
-        }
+    }
+
+    private void ScrollItem(int direction)
+    { 
+        itemListOffset = (itemListOffset + direction + agromancyCrops.Count) % Math.Max(1, agromancyCrops.Count);
     }
 
     public override void receiveRightClick(int x, int y, bool playSound = true)
@@ -163,7 +168,8 @@ public partial class AgrometerMenu : IClickableMenu
 
     public override void receiveScrollWheelAction(int direction)
     {
-        itemListOffset = (itemListOffset + (direction > 0 ? -1 : 1) + agromancyCrops.Count) % Math.Max(1, agromancyCrops.Count);
+        int scrollDirection = direction > 0 ? -1 : 1;
+        ScrollItem(scrollDirection);
     }
 
     public override void performHoverAction(int x, int y)

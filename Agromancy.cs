@@ -17,6 +17,7 @@ using Agromancy.Menus;
 using Agromancy.Models;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
+using StardewValley.GameData.Buffs;
 using StardewValley.GameData.Crops;
 using StardewValley.GameData.Objects;
 using StardewValley.Mods;
@@ -124,12 +125,12 @@ namespace Agromancy
                     {
                         Name = $"{UNIQUE_ID}_EssenceVial",
                         DisplayName = "Essence Vial", // TODO: i18n
-                        Description = "A capsule capable of storing a seemingly limitless amount of magical essence.", // TODO: i18n
+                        Description = "A capsule capable of storing a seemingly limitless amount of magical essence.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
                         Type = "Basic",
                         Category = 0,
                         Price = 100,
                         Texture = $"{UNIQUE_ID}/Objects",
-                        SpriteIndex = 0
+                        SpriteIndex = 0,
                     };
                 });
             }
@@ -253,6 +254,7 @@ namespace Agromancy
 
             if (e.Button is SButton.F8)
             {
+                Helper.GameContent.InvalidateCache("Data/Objects");
                 Log.Warn("Applying random essences to current item.");
                 Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());
             }

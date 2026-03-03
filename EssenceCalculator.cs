@@ -22,6 +22,16 @@ public static class EssenceCalculator
     private const float MAX_QUALITY_BUMP_CHANCE = 1f;
     private const float MAX_GIANT_CHANCE = 1f;
     private const float MIN_WATER_CHANCE = 0f;
+    
+    public static CropEssences EmptyEssences => new CropEssences
+    {
+        YieldEssence = 0,
+        QualityEssence = [0, 0, 0],
+        GrowthEssence = 0,
+        GiantEssence = 0,
+        WaterEssence = 0,
+        SeedEssence = 0
+    };
 
     public static void Mutate(this CropEssences essences, int range = 10, bool positiveOnly = false)
     {
