@@ -50,6 +50,25 @@ public static class EssenceCalculator
         return (byte)mutatedValue;
     }
 
+    public static CropEssences RandomEssences()
+    {
+        Random rng = new Random();
+        return new CropEssences
+        {
+            YieldEssence = (byte)rng.Next(0, 256),
+            QualityEssence =
+            [
+                (byte)rng.Next(0, 256),
+                (byte)rng.Next(0, 256),
+                (byte)rng.Next(0, 256)
+            ],
+            GrowthEssence = (byte)rng.Next(0, 256),
+            GiantEssence = (byte)rng.Next(0, 256),
+            WaterEssence = (byte)rng.Next(0, 256),
+            SeedEssence = (byte)rng.Next(0, 256)
+        };
+    }
+
     public static float PercentToPerfectCrop(CropEssences essences)
     {
         float yieldPercent = essences.YieldEssence / 255f;

@@ -65,13 +65,13 @@ public partial class AgrometerMenu
         Rectangle itemSlotSourceRect = Game1.getSourceRectForStandardTileSheet(Game1.menuTexture, 16);
         itemSlotSourceRect.Width -= 4;
         itemSlotSourceRect.Height -= 4;
-        Vector2 slotPosition = GetAgrometerCenter() + new Vector2(0, agrometerFrame.Height / 2f) * GetAgrometerScale().Y;
+        Vector2 slotPosition = GetAgrometerCenter() + new Vector2(0, agrometerFrame.Height / 2.225f) * GetAgrometerScale().Y;
 
         b.Draw(
             texture: itemSlotTexture,
             position: slotPosition,
             sourceRectangle: itemSlotSourceRect,
-            color: GetItemSlotColour(),
+            color: new Color(88, 57, 40),
             rotation: 0f,
             origin: new Vector2(itemSlotSourceRect.Width / 2f, itemSlotSourceRect.Height / 2f),
             scale: GetItemSlotScale(2) * 0.75f,

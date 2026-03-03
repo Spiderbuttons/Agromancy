@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using GenericModConfigMenu;
@@ -17,6 +18,7 @@ using Agromancy.Models;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using StardewValley.GameData.Crops;
+using StardewValley.GameData.Objects;
 using StardewValley.Mods;
 using StardewValley.TerrainFeatures;
 
@@ -101,6 +103,37 @@ namespace Agromancy
                 });
             }
 
+            if (e.NameWithoutLocale.IsEquivalentTo("Data/Objects"))
+            {
+                e.Edit(asset =>
+                {
+                    var data = asset.AsDictionary<string, ObjectData>().Data;
+                    data[$"{UNIQUE_ID}_Agrometer"] = new ObjectData()
+                    {
+                        Name = $"{UNIQUE_ID}_Agrometer",
+                        DisplayName = "Agrometer", // TODO: i18n
+                        Description = "A magical tool that allows you to visualize the magical essences of your crops.", // TODO: i18n
+                        Type = "Basic",
+                        Category = 0,
+                        Price = 100,
+                        Texture = $"{UNIQUE_ID}/Objects",
+                        SpriteIndex = 1
+                    };
+                    
+                    data[$"{UNIQUE_ID}_EssenceVial"] = new ObjectData()
+                    {
+                        Name = $"{UNIQUE_ID}_EssenceVial",
+                        DisplayName = "Essence Vial", // TODO: i18n
+                        Description = "A capsule capable of storing a seemingly limitless amount of magical essence.", // TODO: i18n
+                        Type = "Basic",
+                        Category = 0,
+                        Price = 100,
+                        Texture = $"{UNIQUE_ID}/Objects",
+                        SpriteIndex = 0
+                    };
+                });
+            }
+
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AgrometerFrame"))
             {
                 e.LoadFromModFile<Texture2D>("assets/menuBG_Leafy.png", AssetLoadPriority.Exclusive);
@@ -119,6 +152,11 @@ namespace Agromancy
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/MonochromeArrows"))
             {
                 e.LoadFromModFile<Texture2D>("assets/arrows.png", AssetLoadPriority.Exclusive);
+            }
+
+            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/Objects"))
+            {
+                e.LoadFromModFile<Texture2D>("assets/objects.png", AssetLoadPriority.Exclusive);
             }
         }
 
@@ -204,15 +242,19 @@ namespace Agromancy
             if (!Context.IsWorldReady)
                 return;
 
+            // if (e.Button.IsUseToolButton())
+            // {
+            //     Log.Warn("Pressed use tool button.");
+            //     if (Game1.player.ActiveObject is not null && Game1.player.ActiveObject.QualifiedItemId.Equals($"(O){UNIQUE_ID}_Agrometer"))
+            //     {
+            //         Game1.activeClickableMenu = new AgrometerMenu();
+            //     }
+            // }
+
             if (e.Button is SButton.F8)
             {
-                ScreenTexture = null;
-                PerlinNoise = Helper.ModContent.Load<Texture2D>("assets/noiseTexture.png");
-                if (Game1.activeClickableMenu is not null)
-                {
-                    Game1.activeClickableMenu = null;
-                }
-                else Game1.activeClickableMenu = new AgrometerMenu();
+                Log.Warn("Applying random essences to current item.");
+                Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());
             }
 
             if (e.Button is SButton.F5 && Game1.player.ActiveObject is not null)
