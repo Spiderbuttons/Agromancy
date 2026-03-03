@@ -157,7 +157,7 @@ namespace Agromancy
             BlurFx.Parameters["Saturation"].SetValue(0.35f);
             BlurFx.Parameters["Resolution"].SetValue(new Vector2(target.Width, target.Height));
             BlurFx.Parameters["BlurMultiplier"].SetValue(3f);
-            BlurFx.Parameters["ClarityCenter"].SetValue(new Vector2(menu.GetAgrometerCenter().X / target.Width, menu.GetAgrometerCenter().Y / target.Height));
+            BlurFx.Parameters["ClarityCenter"].SetValue(new Vector2(menu.GetAgrometerCenter().X / Game1.uiViewport.Width, menu.GetAgrometerCenter().Y / Game1.uiViewport.Height));
             BlurFx.Parameters["ClarityRadius"].SetValue(Game1.viewport.Height * 0.33f);
             BlurFx.Parameters["InvertClarity"].SetValue(ModHelper.Input.IsDown(SButton.RightShift));
 
