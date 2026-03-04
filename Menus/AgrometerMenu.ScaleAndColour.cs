@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using StardewValley;
 
 namespace Agromancy.Menus;
@@ -13,6 +14,15 @@ public partial class AgrometerMenu
     private Color GetItemSlotColour()
     {
         return Color.PaleVioletRed;
+    }
+
+    private Color GetEssenceColour(int essenceIndex)
+    {
+        return Color.FromNonPremultiplied(
+            (int)(127 + 127 * Math.Cos(MathHelper.ToRadians(essenceIndex * 30))),
+            (int)(127 + 127 * Math.Cos(MathHelper.ToRadians(essenceIndex * 30 + 120))),
+            (int)(127 + 127 * Math.Cos(MathHelper.ToRadians(essenceIndex * 30 + 240))),
+            255) * 0.85f;
     }
 
     public Vector2 GetAgrometerCenter()

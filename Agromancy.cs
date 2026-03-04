@@ -20,6 +20,7 @@ using Newtonsoft.Json;
 using StardewValley.GameData.Buffs;
 using StardewValley.GameData.Crops;
 using StardewValley.GameData.Objects;
+using StardewValley.GameData.Tools;
 using StardewValley.Mods;
 using StardewValley.TerrainFeatures;
 
@@ -109,18 +110,6 @@ namespace Agromancy
                 e.Edit(asset =>
                 {
                     var data = asset.AsDictionary<string, ObjectData>().Data;
-                    data[$"{UNIQUE_ID}_Agrometer"] = new ObjectData()
-                    {
-                        Name = $"{UNIQUE_ID}_Agrometer",
-                        DisplayName = "Agrometer", // TODO: i18n
-                        Description = "A magical tool that allows you to visualize the magical essences of your crops.", // TODO: i18n
-                        Type = "Basic",
-                        Category = 0,
-                        Price = 100,
-                        Texture = $"{UNIQUE_ID}/Objects",
-                        SpriteIndex = 1
-                    };
-                    
                     data[$"{UNIQUE_ID}_EssenceVial"] = new ObjectData()
                     {
                         Name = $"{UNIQUE_ID}_EssenceVial",
@@ -131,6 +120,30 @@ namespace Agromancy
                         Price = 100,
                         Texture = $"{UNIQUE_ID}/Objects",
                         SpriteIndex = 0,
+                    };
+                });
+            }
+
+            if (e.NameWithoutLocale.IsEquivalentTo("Data/Tools"))
+            {
+                e.Edit(asset =>
+                {
+                    var data = asset.AsDictionary<string, ToolData>().Data;
+                    data[$"{UNIQUE_ID}_Agrometer"] = new ToolData()
+                    {
+                        ClassName = "GenericTool",
+                        Name = $"{UNIQUE_ID}_Agrometer",
+                        DisplayName = "Agrometer", // TODO: i18n
+                        Description = "A magical tool that allows you to visualize the magical essences of your crops.", // TODO: i18n
+                        Texture = $"{UNIQUE_ID}/Objects",
+                        SpriteIndex = 1,
+                        AttachmentSlots = 1,
+                        CanBeLostOnDeath = false,
+                        SetProperties = new Dictionary<string, string>()
+                        {
+                            { "InstantUse", "true" },
+                            { "IsEfficient", "true" }
+                        }
                     };
                 });
             }

@@ -54,18 +54,22 @@ public partial class AgrometerMenu
         
         drawItemSlots(b);
         drawEssenceVial(b);
+        drawExtractAllButton(b);
+        
+        drawParticles(b);
+        
         drawArrows(b);
 
         drawMouse(b);
     }
-
-    private void drawEssenceVial(SpriteBatch b)
+    
+    private void drawExtractAllButton(SpriteBatch b)
     {
         Texture2D itemSlotTexture = Game1.uncoloredMenuTexture;
         Rectangle itemSlotSourceRect = Game1.getSourceRectForStandardTileSheet(Game1.menuTexture, 16);
         itemSlotSourceRect.Width -= 4;
         itemSlotSourceRect.Height -= 4;
-        Vector2 slotPosition = GetAgrometerCenter() + new Vector2(0, agrometerFrame.Height / 2.225f) * GetAgrometerScale().Y;
+        Vector2 slotPosition = GetExtractAllPosition();
 
         b.Draw(
             texture: itemSlotTexture,
@@ -77,21 +81,57 @@ public partial class AgrometerMenu
             scale: GetItemSlotScale(2) * 0.75f,
             effects: SpriteEffects.None,
             layerDepth: 0.5f);
+    }
 
-        if (GetEssenceVial() is not { } vial) return;
-        
-        ParsedItemData iData = ItemRegistry.GetData(vial.QualifiedItemId);
-        Texture2D texture = iData.GetTexture();
+    private void drawEssenceVial(SpriteBatch b)
+    {
+        Texture2D itemSlotTexture = Game1.uncoloredMenuTexture;
+        Rectangle itemSlotSourceRect = Game1.getSourceRectForStandardTileSheet(Game1.menuTexture, 16);
+        itemSlotSourceRect.Width -= 4;
+        itemSlotSourceRect.Height -= 4;
+        Vector2 slotPosition = GetEssenceVialSlotPosition();
+
         b.Draw(
-            texture: texture,
-            position: slotPosition + new Vector2(0, -2),
-            sourceRectangle: iData.DefaultSourceRect,
-            color: Color.White,
+            texture: itemSlotTexture,
+            position: slotPosition,
+            sourceRectangle: itemSlotSourceRect,
+            color: new Color(88, 57, 40),
             rotation: 0f,
-            origin: new Vector2(iData.DefaultSourceRect.Width / 2f, iData.DefaultSourceRect.Height / 2f),
-            scale: GetItemSlotScale(2) * 4f * 0.6f * 0.75f,
+            origin: new Vector2(itemSlotSourceRect.Width / 2f, itemSlotSourceRect.Height / 2f),
+            scale: GetItemSlotScale(2) * 0.75f,
             effects: SpriteEffects.None,
-            layerDepth: 0.51f);
+            layerDepth: 0.5f);
+        
+        ParsedItemData iData = ItemRegistry.GetData(EssenceVial?.QualifiedItemId ?? $"(O){Agromancy.UNIQUE_ID}_EssenceVial");
+        Texture2D texture = iData.GetTexture();
+        Vector2 randomJitter = Vector2.Zero;
+        if (IsCropBeingDrained && EssenceVial is null)
+        {
+            randomJitter = new Vector2((float)(rng.NextDouble() - 0.5) * 4f,
+                (float)(rng.NextDouble() - 0.5) * 4f);
+        }
+        
+        if (EssenceVial is not null) {
+            EssenceVial.drawInMenu(
+                spriteBatch: b,
+                location: slotPosition + new Vector2(0, -2) - new Vector2(texture.Width, texture.Height * 2f) + randomJitter,
+                scaleSize: GetItemSlotScale(2).X * 0.6f * 0.75f,
+                transparency: 1f * (EssenceVial is not null ? 1f : 0.4f),
+                layerDepth: 0.51f);
+        }
+        else
+        {
+            b.Draw(
+                texture: texture,
+                position: slotPosition + new Vector2(0, -2) + randomJitter,
+                sourceRectangle: iData.DefaultSourceRect,
+                color: EssenceVial is not null ? Color.White : Color.Black * 0.4f,
+                rotation: 0f,
+                origin: new Vector2(iData.DefaultSourceRect.Width / 2f, iData.DefaultSourceRect.Height / 2f),
+                scale: GetItemSlotScale(2) * 4f * 0.6f * 0.75f,
+                effects: SpriteEffects.None,
+                layerDepth: 0.51f);
+        }
     }
     
     public void DrawAgrometerBackground(SpriteBatch b)
@@ -248,11 +288,7 @@ public partial class AgrometerMenu
                 texture: Game1.staminaRect,
                 position: position,
                 sourceRectangle: null,
-                color: Color.FromNonPremultiplied(
-                    (int)(127 + 127 * Math.Cos(MathHelper.ToRadians(i * 30))),
-                    (int)(127 + 127 * Math.Cos(MathHelper.ToRadians(i * 30 + 120))),
-                    (int)(127 + 127 * Math.Cos(MathHelper.ToRadians(i * 30 + 240))),
-                    255) * 0.85f,
+                color: GetEssenceColour(i),
                 rotation: 0f,
                 origin: new Vector2(0.5f, 0.5f),
                 scale: GetAgrometerScale() * agrometerStatRing.Width * 0.1f * currentEssenceScale[i],
@@ -327,9 +363,15 @@ public partial class AgrometerMenu
                 Item item = agromancyCrops[(i + itemListOffset) % agromancyCrops.Count];
                 ParsedItemData iData = ItemRegistry.GetData(item.QualifiedItemId);
                 Texture2D texture = iData.GetTexture();
+                Vector2 randomJitter = Vector2.Zero;
+                if (IsCropBeingDrained && i is 2 && EssenceVial is not null)
+                {
+                    randomJitter = new Vector2((float)(rng.NextDouble() - 0.5) * 4f,
+                        (float)(rng.NextDouble() - 0.5) * 4f);
+                }
                 b.Draw(
                     texture: texture,
-                    position: slotPosition + new Vector2(0, -2),
+                    position: slotPosition + new Vector2(0, -2) + randomJitter,
                     sourceRectangle: iData.DefaultSourceRect,
                     color: Color.White * (1f - 0.45f * Math.Abs(2 - i)),
                     rotation: 0f,

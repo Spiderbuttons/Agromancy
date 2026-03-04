@@ -16,47 +16,65 @@ namespace Agromancy.Menus;
 
 public partial class AgrometerMenu : IClickableMenu
 {
+    private Tool Agrometer;
+    private Item? EssenceVial;
+
     public int MillisecondsMenuHasBeenOpen;
-    
+
+    private bool shouldAllowClick = false;
+
     private Texture2D agrometerFrame;
     private Texture2D agrometerCircles;
     private Texture2D agrometerStatRing;
 
     private int itemListOffset = 0;
-    
+
+    public Dictionary<int, bool> EssencesBeingDrained = new();
+    public bool IsCropBeingDrained = false;
+
+    public int[] drainParticleCooldown = new int[6];
+    public int unsuccessfulDrainCooldown = 0;
+    public int extractAllCooldown = 0;
+
+    public Random rng = new();
+
     private Texture2D ArrowsTexture => Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/MonochromeArrows");
     private Rectangle UpArrowSourceRect => new(0, 0, 11, 12);
     private Rectangle DownArrowSourceRect => new(11, 0, 11, 12);
     private Rectangle LeftArrowSourceRect => new(22, 0, 12, 12);
     private Rectangle RightArrowSourceRect => new(34, 0, 12, 12);
-    
+
     public ClickableTextureComponent UpArrow;
     public ClickableTextureComponent DownArrow;
-    
+
     List<Item> agromancyCrops => GetItemsWithAgromancyData();
 
-    public AgrometerMenu()
+    public AgrometerMenu(Tool agrometer)
     {
+        Agrometer = agrometer;
+        EssenceVial = GetEssenceVial();
         MillisecondsMenuHasBeenOpen = Game1.currentGameTime.TotalGameTime.Milliseconds;
-        
+
         agrometerFrame = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerFrame");
         agrometerCircles = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerCircles");
         agrometerStatRing = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerStatRing");
-        
+
         Rectangle upArrowLocation = new Rectangle(
             x: (int)(GetAgrometerCenter().X - 2 - (UpArrowSourceRect.Width) * GetAgrometerScale().X),
-            y: (int)(GetAgrometerCenter().Y - (agrometerFrame.Height / 3f) * GetAgrometerScale().Y - (UpArrowSourceRect.Height) * GetAgrometerScale().Y),
+            y: (int)(GetAgrometerCenter().Y - (agrometerFrame.Height / 3f) * GetAgrometerScale().Y -
+                     (UpArrowSourceRect.Height) * GetAgrometerScale().Y),
             width: (int)(UpArrowSourceRect.Width * GetAgrometerScale().X * 2f),
             height: (int)(UpArrowSourceRect.Height * GetAgrometerScale().Y * 2f)
         );
-        
+
         Rectangle downArrowLocation = new Rectangle(
             (int)(GetAgrometerCenter().X - 2 - (DownArrowSourceRect.Width) * GetAgrometerScale().X),
-            (int)(GetAgrometerCenter().Y + (agrometerFrame.Height / 3f) * GetAgrometerScale().Y - (DownArrowSourceRect.Height) * GetAgrometerScale().Y),
+            (int)(GetAgrometerCenter().Y + (agrometerFrame.Height / 3f) * GetAgrometerScale().Y -
+                  (DownArrowSourceRect.Height) * GetAgrometerScale().Y),
             (int)(DownArrowSourceRect.Width * GetAgrometerScale().X * 2f),
             (int)(DownArrowSourceRect.Height * GetAgrometerScale().Y * 2f)
         );
-        
+
         UpArrow = new ClickableTextureComponent(
             name: "UpArrow",
             bounds: upArrowLocation,
@@ -80,11 +98,12 @@ public partial class AgrometerMenu : IClickableMenu
     public override void receiveGamePadButton(Buttons button)
     {
         base.receiveGamePadButton(button);
-        
+
         if (button is Buttons.DPadUp or Buttons.LeftThumbstickUp)
         {
             ScrollItem(-1);
-        } else if (button is Buttons.DPadDown or Buttons.LeftThumbstickDown)
+        }
+        else if (button is Buttons.DPadDown or Buttons.LeftThumbstickDown)
         {
             ScrollItem(1);
         }
@@ -120,24 +139,101 @@ public partial class AgrometerMenu : IClickableMenu
     public override void releaseLeftClick(int x, int y)
     {
         base.releaseLeftClick(x, y);
+        shouldAllowClick = true;
+        IsCropBeingDrained = false;
+        for (int i = 0; i < EssencesBeingDrained.Count; i++)
+        {
+            EssencesBeingDrained[i] = false;
+        }
     }
 
     public override void leftClickHeld(int x, int y)
     {
+        if (!shouldAllowClick) return;
+
         base.leftClickHeld(x, y);
+        bool foundDrainedEssence = false;
         foreach (var (essenceIdx, essenceCircle) in EssenceCenters)
         {
             if (PointInCircle(new Vector2(x, y), new Vector2(essenceCircle.X, essenceCircle.Y), essenceCircle.Z))
             {
-                Log.Warn("Clicking essence circle " + essenceIdx);
+                foundDrainedEssence = true;
+                EssencesBeingDrained[essenceIdx] = true;
+            }
+            else EssencesBeingDrained[essenceIdx] = false;
+
+            if (EssencesBeingDrained[essenceIdx])
+            {
+                if (EssenceVial is not null)
+                {
+                    drainEssence(essenceIdx, essenceCircle);
+                }
+                else
+                {
+                    cannotDrainEssenceFeedback();
+                }
             }
         }
+
+        Vector2 extractAllPosition = GetExtractAllPosition();
+        var extractAllRect = new Rectangle((int)(extractAllPosition.X - 32 * GetItemSlotScale(2).X * 0.75f),
+            (int)(extractAllPosition.Y - 32 * GetItemSlotScale(2).X * 0.75f), (int)(64 * GetItemSlotScale(2).X * 0.75f),
+            (int)(64 * GetItemSlotScale(2).X * 0.75f));
+        if (extractAllRect.Contains(x, y))
+        {
+            foundDrainedEssence = true;
+            for (int i = 0; i < EssencesBeingDrained.Count; i++)
+            {
+                EssencesBeingDrained[i] = true;
+                if (EssenceVial is not null)
+                {
+                    drainEssence(i, EssenceCenters[i], silent: true);
+                    if (extractAllCooldown > 0) continue;
+                    
+                    Game1.playSound("boulderCrack", out var cue);
+                    cue.Pitch = 0.1f + (float)rng.NextDouble() * 0.35f;
+
+                    extractAllCooldown = 85;
+                }
+                else cannotDrainEssenceFeedback();
+            }
+        }
+
+        IsCropBeingDrained = foundDrainedEssence;
+    }
+
+    private void drainEssence(int essenceIdx, Vector3 essenceCircle, bool silent = false)
+    {
+        if (drainParticleCooldown[essenceIdx] > 0 || EssenceVial is null) return;
+
+        createParticle(
+            startPosition: new Vector2(essenceCircle.X, essenceCircle.Y),
+            endPosition: GetEssenceVialSlotPosition(),
+            colour: GetEssenceColour(essenceIdx),
+            scale: new Vector2(1f, 1f) * GetAgrometerScale().X
+        );
+        if (!silent)
+        {
+            Game1.playSound("boulderCrack", out var cue);
+            cue.Pitch = 0.1f + (float)rng.NextDouble() * 0.35f;
+        }
+
+        drainParticleCooldown[essenceIdx] = 85;
+    }
+
+    private void cannotDrainEssenceFeedback()
+    {
+        if (unsuccessfulDrainCooldown > 0) return;
+
+        Game1.playSound("cancel");
+        unsuccessfulDrainCooldown = 1000;
     }
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
         // base.receiveLeftClick(x, y, playSound);
-        
+        if (!shouldAllowClick) return;
+
         if (UpArrow.bounds.Contains(x, y) || DownArrow.bounds.Contains(x, y))
         {
             int direction = UpArrow.bounds.Contains(x, y) ? -1 : 1;
@@ -146,7 +242,7 @@ public partial class AgrometerMenu : IClickableMenu
     }
 
     private void ScrollItem(int direction)
-    { 
+    {
         itemListOffset = (itemListOffset + direction + agromancyCrops.Count) % Math.Max(1, agromancyCrops.Count);
     }
 
@@ -179,7 +275,8 @@ public partial class AgrometerMenu : IClickableMenu
             if (PointInCircle(new Vector2(x, y), new Vector2(essenceCircle.X, essenceCircle.Y), essenceCircle.Z))
             {
                 targetEssenceScale[essenceIdx] = 1.15f;
-            } else targetEssenceScale[essenceIdx] = 1f;
+            }
+            else targetEssenceScale[essenceIdx] = 1f;
         }
     }
 

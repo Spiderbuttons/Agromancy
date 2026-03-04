@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Agromancy.Helpers;
 using Agromancy.Models;
 using Microsoft.Xna.Framework;
 using StardewValley.Menus;
@@ -21,11 +22,21 @@ public partial class AgrometerMenu
     public override void update(GameTime time)
     {
         MillisecondsMenuHasBeenOpen += time.ElapsedGameTime.Milliseconds;
+        for (var index = 0; index < drainParticleCooldown.Length; index++)
+        {
+            var cooldown = drainParticleCooldown[index];
+            cooldown -= time.ElapsedGameTime.Milliseconds;
+            drainParticleCooldown[index] = cooldown;
+        }
+
+        unsuccessfulDrainCooldown -= time.ElapsedGameTime.Milliseconds;
+        extractAllCooldown -= time.ElapsedGameTime.Milliseconds;
         
         updateTotalEssencePercent();
         updateEssencePercents();
         updateArrows();
         updateHoveredEssence();
+        updateParticles();
     }
 
     private void updateHoveredEssence()

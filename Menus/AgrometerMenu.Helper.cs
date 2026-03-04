@@ -32,8 +32,19 @@ public partial class AgrometerMenu
 
     private Item? GetEssenceVial()
     {
-        var inventory = Game1.player.Items;
-        return inventory.FirstOrDefault(item => item.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_EssenceVial"));
+        return Agrometer.attachments.Count > 0 ? Agrometer.attachments[0] : null;
+        // var inventory = Game1.player.Items;
+        // return inventory.FirstOrDefault(item => item.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_EssenceVial"));
+    }
+
+    private Vector2 GetEssenceVialSlotPosition()
+    {
+        return GetAgrometerCenter() + new Vector2(0, agrometerFrame.Height / 2.225f) * GetAgrometerScale().Y;
+    }
+    
+    private Vector2 GetExtractAllPosition()
+    {
+        return GetAgrometerCenter() - new Vector2(0, agrometerFrame.Height / 2.225f) * GetAgrometerScale().Y;
     }
 
     public Item? GetCurrentlySelectedCrop()
