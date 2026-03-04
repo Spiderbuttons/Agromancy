@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Agromancy.Helpers;
 using Agromancy.Models;
 using Microsoft.Xna.Framework;
@@ -31,6 +32,8 @@ public partial class AgrometerMenu
 
         unsuccessfulDrainCooldown -= time.ElapsedGameTime.Milliseconds;
         extractAllCooldown -= time.ElapsedGameTime.Milliseconds;
+        if (IsCropBeingDrained) timeDraining += time.ElapsedGameTime.Milliseconds;
+        else timeDraining = 0;
         
         updateTotalEssencePercent();
         updateEssencePercents();
@@ -114,11 +117,14 @@ public partial class AgrometerMenu
         {
             float pct = essences is not null ? EssenceCalculator.GetEssencePercent(essences, i) : 0f;
             targetEssencePct[i] = pct;
+            float diffBetweenPercents = Math.Abs(currentEssencePct[i] - targetEssencePct[i]) / 100f;
             if (currentEssencePct[i] < targetEssencePct[i])
             {
-                currentEssencePct[i] = MathHelper.SmoothStep(currentEssencePct[i], targetEssencePct[i], 0.15f);
+                float lerpStrength = MathHelper.Lerp(0.15f, 0.3f, diffBetweenPercents);
+                currentEssencePct[i] = MathHelper.SmoothStep(currentEssencePct[i], targetEssencePct[i], lerpStrength);
             } else
             {
+                float lerpStrength = MathHelper.Lerp(0.075f, 0.15f, diffBetweenPercents);
                 currentEssencePct[i] = MathHelper.Lerp(currentEssencePct[i], targetEssencePct[i], 0.075f);
             }
         }

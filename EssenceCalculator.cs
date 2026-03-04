@@ -78,6 +78,54 @@ public static class EssenceCalculator
             SeedEssence = (byte)rng.Next(0, 256)
         };
     }
+    
+    public static int GetEssence(CropEssences essences, int essenceIdx)
+    {
+        return essenceIdx switch
+        {
+            YIELD_INDEX => essences.YieldEssence,
+            QUALITY_INDEX => essences.QualityEssence.Sum(x => x),
+            GROWTH_INDEX => essences.GrowthEssence,
+            GIANT_INDEX => essences.GiantEssence,
+            WATER_INDEX => essences.WaterEssence,
+            SEED_INDEX => essences.SeedEssence,
+            _ => throw new ArgumentOutOfRangeException(nameof(essenceIdx), essenceIdx, null)
+        };
+    }
+
+    public static void SetEssence(CropEssences essences, int essenceIdx, int amount)
+    {
+        if (essenceIdx is not QUALITY_INDEX && amount > 255)
+            throw new ArgumentOutOfRangeException(nameof(amount), amount, "Amount must be between 0 and 255 for non-quality essences.");
+        
+        switch (essenceIdx)
+        {
+            case YIELD_INDEX:
+                essences.YieldEssence = (byte)amount;
+                break;
+            case QUALITY_INDEX:
+                essences.QualityEssence[0] = (byte)Math.Min(amount, 255);
+                int leftover = (amount > 255 ? amount - 255 : 0);
+                essences.QualityEssence[1] = (byte)Math.Min(leftover, 255);
+                leftover = (byte)(leftover > 255 ? leftover - 255 : 0);
+                essences.QualityEssence[2] = (byte)Math.Min(leftover, 255);
+                break;
+            case GROWTH_INDEX:
+                essences.GrowthEssence = (byte)amount;
+                break;
+            case GIANT_INDEX:
+                essences.GiantEssence = (byte)amount;
+                break;
+            case WATER_INDEX:
+                essences.WaterEssence = (byte)amount;
+                break;
+            case SEED_INDEX:
+                essences.SeedEssence = (byte)amount;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(essenceIdx), essenceIdx, null);
+        }
+    }
 
     public static float PercentToPerfectCrop(CropEssences essences)
     {

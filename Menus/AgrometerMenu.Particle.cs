@@ -75,4 +75,23 @@ public partial class AgrometerMenu
         float rotation = (float)rng.NextDouble() * MathHelper.TwoPi;
         drainParticles.Add(new Particle(particleTexture, sourceRect, colour, startPosition, endPosition, scale, rotation));
     }
+
+    private void createParticleFromDraining(int essenceIdx, Vector3 essenceCircle, bool silent = false)
+    {
+        if (drainParticleCooldown[essenceIdx] > 0) return;
+        
+        createParticle(
+            startPosition: new Vector2(essenceCircle.X, essenceCircle.Y),
+            endPosition: GetEssenceVialSlotPosition(),
+            colour: GetEssenceColour(essenceIdx),
+            scale: new Vector2(1f, 1f) * GetAgrometerScale().X
+        );
+        if (!silent)
+        {
+            Game1.playSound("boulderCrack", out var cue);
+            cue.Pitch = 0.1f + (float)rng.NextDouble() * 0.35f;
+        }
+
+        drainParticleCooldown[essenceIdx] = 85;
+    }
 }

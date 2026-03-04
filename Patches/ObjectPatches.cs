@@ -19,10 +19,15 @@ public class ObjectPatches
         {
             __instance.modData.TryAdd($"{Agromancy.UNIQUE_ID}_{i}", "0");
         }
+        
+        float yield = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_0"]) / 255f;
+        float quality = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_1"]) / (255 * 3f);
+        float growth = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_2"]) / 255f;
+        float giant = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_3"]) / 255f;
+        float water = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_4"]) / 255f;
+        float seed = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_5"]) / 255f;
+        float total = yield + quality + growth + giant + water + seed;
 
-        __result = string.Format(__result, __instance.modData[$"{Agromancy.UNIQUE_ID}_{0}"],
-            __instance.modData[$"{Agromancy.UNIQUE_ID}_{1}"], __instance.modData[$"{Agromancy.UNIQUE_ID}_{2}"],
-            __instance.modData[$"{Agromancy.UNIQUE_ID}_{3}"], __instance.modData[$"{Agromancy.UNIQUE_ID}_{4}"],
-            __instance.modData[$"{Agromancy.UNIQUE_ID}_{5}"], __instance.modData[$"{Agromancy.UNIQUE_ID}_{6}"]);
+        __result = string.Format(__result, yield.ToString("0.##"), quality.ToString("0.##"), growth.ToString("0.##"), giant.ToString("0.##"), water.ToString("0.##"), seed.ToString("0.##"), total.ToString("0.##"));
     }
 }

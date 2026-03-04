@@ -243,7 +243,7 @@ public partial class AgrometerMenu
             // The waviness means it won't appear full even at 100%, so this next line just adds a little extra percentage for visuals.
             // More gets added the closer to 100% it is, because if I just add a flat amount, it doesn't look actually empty at 0% like it should.
             // (It won't ever look ABSOLUTELY full though because I don't want to hide my nice liquid shader wobblies...)
-            FillPercentage += + MathHelper.Lerp(0, 0.1f, FillPercentage);
+            FillPercentage += MathHelper.Lerp(0, 0.1f, FillPercentage);
             float waviness = 200f * FillPercentage;
             
             Agromancy.LiquidCircleFx.Parameters["Time"].SetValue((float)(Game1.currentGameTime.TotalGameTime

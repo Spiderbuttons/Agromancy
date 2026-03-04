@@ -36,6 +36,8 @@ public partial class AgrometerMenu : IClickableMenu
     public int unsuccessfulDrainCooldown = 0;
     public int extractAllCooldown = 0;
 
+    private int timeDraining = 0;
+
     public Random rng = new();
 
     private Texture2D ArrowsTexture => Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/MonochromeArrows");
@@ -164,9 +166,10 @@ public partial class AgrometerMenu : IClickableMenu
 
             if (EssencesBeingDrained[essenceIdx])
             {
-                if (EssenceVial is not null)
+                bool didDrain = drainEssence(essenceIdx);
+                if (didDrain)
                 {
-                    drainEssence(essenceIdx, essenceCircle);
+                    createParticleFromDraining(essenceIdx, essenceCircle);
                 }
                 else
                 {
@@ -182,43 +185,62 @@ public partial class AgrometerMenu : IClickableMenu
         if (extractAllRect.Contains(x, y))
         {
             foundDrainedEssence = true;
-            for (int i = 0; i < EssencesBeingDrained.Count; i++)
-            {
-                EssencesBeingDrained[i] = true;
-                if (EssenceVial is not null)
-                {
-                    drainEssence(i, EssenceCenters[i], silent: true);
-                    if (extractAllCooldown > 0) continue;
-                    
-                    Game1.playSound("boulderCrack", out var cue);
-                    cue.Pitch = 0.1f + (float)rng.NextDouble() * 0.35f;
-
-                    extractAllCooldown = 85;
-                }
-                else cannotDrainEssenceFeedback();
-            }
+            drainAllEssences();
         }
 
         IsCropBeingDrained = foundDrainedEssence;
     }
 
-    private void drainEssence(int essenceIdx, Vector3 essenceCircle, bool silent = false)
+    private void drainAllEssences()
     {
-        if (drainParticleCooldown[essenceIdx] > 0 || EssenceVial is null) return;
+        bool didDrainAny = false;
+        for (int i = 0; i < EssencesBeingDrained.Count; i++)
+        {
+            EssencesBeingDrained[i] = true;
+            var didDrain = drainEssence(i);
+            if (didDrain)
+            {
+                didDrainAny = true;
+                createParticleFromDraining(i, EssenceCenters[i], silent: true);
+            }
+        }
 
-        createParticle(
-            startPosition: new Vector2(essenceCircle.X, essenceCircle.Y),
-            endPosition: GetEssenceVialSlotPosition(),
-            colour: GetEssenceColour(essenceIdx),
-            scale: new Vector2(1f, 1f) * GetAgrometerScale().X
-        );
-        if (!silent)
+        if (!didDrainAny) cannotDrainEssenceFeedback();
+        else if (extractAllCooldown <= 0)
         {
             Game1.playSound("boulderCrack", out var cue);
             cue.Pitch = 0.1f + (float)rng.NextDouble() * 0.35f;
+            extractAllCooldown = 85;
+        }
+    }
+
+    private bool drainEssence(int essenceIdx)
+    {
+        if (EssenceVial is null) return false;
+
+        CropEssences? essences = GetCurrentlySelectedCropEssences();
+        if (essences is null || EssenceCalculator.GetEssence(essences, essenceIdx) <= 0)
+        {
+            return false;
         }
 
-        drainParticleCooldown[essenceIdx] = 85;
+        if (drainParticleCooldown[essenceIdx] > 0) return true;
+
+        int currentEssence = EssenceCalculator.GetEssence(essences, essenceIdx);
+        // Start draining faster the longer the player holds, up to a point.
+        float amountToDrain = MathHelper.Lerp(1, 25, MathHelper.Clamp(timeDraining / 5000f, 0f, 1f));
+        int newEssenceAmount = currentEssence - (int)amountToDrain;
+        newEssenceAmount = Math.Max(0, newEssenceAmount);
+        int essenceDiff = currentEssence - newEssenceAmount;
+
+        int currentVialAmount =
+            EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_{essenceIdx}"] is not { } s ? 0 : int.Parse(s);
+        int newVialAmount = currentVialAmount + essenceDiff;
+        EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_{essenceIdx}"] = newVialAmount.ToString();
+
+        EssenceCalculator.SetEssence(essences, essenceIdx, newEssenceAmount);
+        GetCurrentlySelectedCrop()!.ApplyEssences(essences);
+        return true;
     }
 
     private void cannotDrainEssenceFeedback()
