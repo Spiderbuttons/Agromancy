@@ -227,18 +227,23 @@ public partial class AgrometerMenu : IClickableMenu
         if (drainParticleCooldown[essenceIdx] > 0) return true;
 
         int currentEssence = EssenceCalculator.GetEssence(essences, essenceIdx);
-        // Start draining faster the longer the player holds, up to a point.
-        float amountToDrain = MathHelper.Lerp(1, 25, MathHelper.Clamp(timeDraining / 5000f, 0f, 1f));
-        int newEssenceAmount = currentEssence - (int)amountToDrain;
+        Log.Warn(currentEssence);
+        if (essenceIdx is EssenceCalculator.QUALITY_INDEX)
+        {
+            currentEssence /= 3;
+        }
+        int amountToDrain = (int)MathHelper.Lerp(1, 25, MathHelper.Clamp(timeDraining / 5000f, 0f, 1f));
+        Log.Error(amountToDrain);
+        
+        int newEssenceAmount = currentEssence - amountToDrain;
         newEssenceAmount = Math.Max(0, newEssenceAmount);
         int essenceDiff = currentEssence - newEssenceAmount;
 
-        int currentVialAmount =
-            EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_{essenceIdx}"] is not { } s ? 0 : int.Parse(s);
-        int newVialAmount = currentVialAmount + essenceDiff;
-        EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_{essenceIdx}"] = newVialAmount.ToString();
+        float currentVialAmount = EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_{essenceIdx}"] is not { } s ? 0 : float.Parse(s);
+        float newVialAmount = currentVialAmount + essenceDiff * GetCurrentlySelectedCrop()!.Stack * (essenceIdx is EssenceCalculator.QUALITY_INDEX ? 3 : 1);
+        EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_{essenceIdx}"] = newVialAmount.ToString(CultureInfo.CurrentCulture);
 
-        EssenceCalculator.SetEssence(essences, essenceIdx, newEssenceAmount);
+        EssenceCalculator.SetEssence(essences, essenceIdx, (int)newEssenceAmount * (essenceIdx is EssenceCalculator.QUALITY_INDEX ? 3 : 1));
         GetCurrentlySelectedCrop()!.ApplyEssences(essences);
         return true;
     }

@@ -125,7 +125,7 @@ public partial class AgrometerMenu
             } else
             {
                 float lerpStrength = MathHelper.Lerp(0.075f, 0.15f, diffBetweenPercents);
-                currentEssencePct[i] = MathHelper.Lerp(currentEssencePct[i], targetEssencePct[i], 0.075f);
+                currentEssencePct[i] = MathHelper.Lerp(currentEssencePct[i], targetEssencePct[i], lerpStrength);
             }
         }
     }

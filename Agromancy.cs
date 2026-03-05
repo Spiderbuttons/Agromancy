@@ -285,7 +285,7 @@ namespace Agromancy
                     }
                 }
 
-                Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());
+                // Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());
             }
 
             if (e.Button is SButton.F5 && Game1.player.ActiveObject is not null)
