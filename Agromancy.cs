@@ -268,24 +268,24 @@ namespace Agromancy
             if (e.Button is SButton.F8)
             {
                 Log.Warn($"Current Essences on held item:");
-                if (Game1.player.ActiveObject is not null &&
-                    Game1.player.ActiveObject.modData.ContainsKey(Manifest.UniqueID))
-                {
-                    CropEssences essences =
-                        JsonConvert.DeserializeObject<CropEssences>(
-                            Game1.player.ActiveObject.modData[Manifest.UniqueID]!)!;
-                    foreach (var prop in typeof(CropEssences).GetProperties())
-                    {
-                        if (prop.PropertyType == typeof(byte[]))
-                        {
-                            byte[] arr = (byte[])prop.GetValue(essences)!;
-                            Log.Info($"{prop.Name}: [{string.Join(", ", arr)}]");
-                        }
-                        else Log.Info($"{prop.Name}: {prop.GetValue(essences)}");
-                    }
-                }
+                // if (Game1.player.ActiveObject is not null &&
+                //     Game1.player.ActiveObject.modData.ContainsKey(Manifest.UniqueID))
+                // {
+                //     CropEssences essences =
+                //         JsonConvert.DeserializeObject<CropEssences>(
+                //             Game1.player.ActiveObject.modData[Manifest.UniqueID]!)!;
+                //     foreach (var prop in typeof(CropEssences).GetProperties())
+                //     {
+                //         if (prop.PropertyType == typeof(byte[]))
+                //         {
+                //             byte[] arr = (byte[])prop.GetValue(essences)!;
+                //             Log.Info($"{prop.Name}: [{string.Join(", ", arr)}]");
+                //         }
+                //         else Log.Info($"{prop.Name}: {prop.GetValue(essences)}");
+                //     }
+                // }
 
-                // Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());
+                Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());
             }
 
             if (e.Button is SButton.F5 && Game1.player.ActiveObject is not null)
@@ -293,7 +293,7 @@ namespace Agromancy
                 Game1.player.ActiveObject.modData[Manifest.UniqueID] = JsonConvert.SerializeObject(new CropEssences
                 {
                     YieldEssence = 255,
-                    QualityEssence = [255, 255, 255],
+                    QualityEssence = 255,
                     GrowthEssence = 255,
                     GiantEssence = 255,
                     WaterEssence = 255,

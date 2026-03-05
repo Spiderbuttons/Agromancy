@@ -26,7 +26,7 @@ public static class EssenceCalculator
     public static CropEssences EmptyEssences => new CropEssences
     {
         YieldEssence = 0,
-        QualityEssence = [0, 0, 0],
+        QualityEssence = 0,
         GrowthEssence = 0,
         GiantEssence = 0,
         WaterEssence = 0,
@@ -36,10 +36,7 @@ public static class EssenceCalculator
     public static void Mutate(this CropEssences essences, int range = 10, bool positiveOnly = false)
     {
         essences.YieldEssence = MutateEssence(essences.YieldEssence, range, positiveOnly);
-        for (int i = 0; i < essences.QualityEssence.Length; i++)
-        {
-            essences.QualityEssence[i] = MutateEssence(essences.QualityEssence[i], range, positiveOnly);
-        }
+        essences.QualityEssence = MutateEssence(essences.QualityEssence, range, positiveOnly);
         essences.GrowthEssence = MutateEssence(essences.GrowthEssence, range, positiveOnly);
         essences.GiantEssence = MutateEssence(essences.GiantEssence, range, positiveOnly);
         essences.WaterEssence = MutateEssence(essences.WaterEssence, range, positiveOnly);
@@ -66,12 +63,7 @@ public static class EssenceCalculator
         return new CropEssences
         {
             YieldEssence = (byte)rng.Next(0, 256),
-            QualityEssence =
-            [
-                (byte)rng.Next(0, 256),
-                (byte)rng.Next(0, 256),
-                (byte)rng.Next(0, 256)
-            ],
+            QualityEssence = (byte)rng.Next(0, 256),
             GrowthEssence = (byte)rng.Next(0, 256),
             GiantEssence = (byte)rng.Next(0, 256),
             WaterEssence = (byte)rng.Next(0, 256),
@@ -84,7 +76,7 @@ public static class EssenceCalculator
         return essenceIdx switch
         {
             YIELD_INDEX => essences.YieldEssence,
-            QUALITY_INDEX => essences.QualityEssence.Sum(x => x),
+            QUALITY_INDEX => essences.QualityEssence,
             GROWTH_INDEX => essences.GrowthEssence,
             GIANT_INDEX => essences.GiantEssence,
             WATER_INDEX => essences.WaterEssence,
@@ -95,8 +87,8 @@ public static class EssenceCalculator
 
     public static void SetEssence(CropEssences essences, int essenceIdx, int amount)
     {
-        if (essenceIdx is not QUALITY_INDEX && amount > 255)
-            throw new ArgumentOutOfRangeException(nameof(amount), amount, "Amount must be between 0 and 255 for non-quality essences.");
+        if (amount > 255)
+            throw new ArgumentOutOfRangeException(nameof(amount), amount, "Amount must be between 0 and 255.");
         
         switch (essenceIdx)
         {
@@ -104,11 +96,7 @@ public static class EssenceCalculator
                 essences.YieldEssence = (byte)amount;
                 break;
             case QUALITY_INDEX:
-                essences.QualityEssence[0] = (byte)Math.Min(amount, 255);
-                int leftover = (amount > 255 ? amount - 255 : 0);
-                essences.QualityEssence[1] = (byte)Math.Min(leftover, 255);
-                leftover = (byte)(leftover > 255 ? leftover - 255 : 0);
-                essences.QualityEssence[2] = (byte)Math.Min(leftover, 255);
+                essences.QualityEssence = (byte)amount;
                 break;
             case GROWTH_INDEX:
                 essences.GrowthEssence = (byte)amount;
@@ -130,7 +118,7 @@ public static class EssenceCalculator
     public static float PercentToPerfectCrop(CropEssences essences)
     {
         float yieldPercent = essences.YieldEssence / 255f;
-        float qualityPercent = (float)essences.QualityEssence.Average(x => x) / 255f;
+        float qualityPercent = essences.QualityEssence / 255f;
         float growthPercent = essences.GrowthEssence / 255f;
         float giantPercent = essences.GiantEssence / 255f;
         float waterPercent = essences.WaterEssence / 255f;
@@ -146,7 +134,7 @@ public static class EssenceCalculator
         return idx switch
         {
             YIELD_INDEX => essences.YieldEssence / 255f,
-            QUALITY_INDEX => essences.QualityEssence.Sum(x => x) / (255f * essences.QualityEssence.Length),
+            QUALITY_INDEX => essences.QualityEssence / 255f,
             GROWTH_INDEX => essences.GrowthEssence / 255f,
             GIANT_INDEX => essences.GiantEssence / 255f,
             WATER_INDEX => essences.WaterEssence / 255f,
@@ -162,7 +150,7 @@ public static class EssenceCalculator
             return new CropEssences
             {
                 YieldEssence = 0,
-                QualityEssence = [0, 0, 0],
+                QualityEssence = 0,
                 GrowthEssence = 0,
                 GiantEssence = 0,
                 WaterEssence = 0,
@@ -189,14 +177,13 @@ public static class EssenceCalculator
         return yieldEssence;
     }
     
-    public static byte[] DefaultQualityEssence(AgroCropReference cropRef)
+    public static byte DefaultQualityEssence(AgroCropReference cropRef)
     {
-        byte[] qualityBump = new byte[3];
+        byte qualityBump = 0;
         for (int i = 0; i < 3; i++)
         {
             if (cropRef.CropData.HarvestMinQuality > i)
-                qualityBump[i] = 255;
-            else qualityBump[i] = 0;
+                qualityBump = (byte)Math.Min(255, qualityBump + 255 / 3);
         }
         return qualityBump;
     }
