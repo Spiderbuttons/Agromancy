@@ -19,8 +19,7 @@ public class HoeDirtPatches
             Log.Debug("Crop planted, adding Agromancy essences.");
             
             CropManager.EnsureLookups();
-            CropEssences essences = CropManager.GrabEssences(who.ActiveObject) ??
-                                    EssenceCalculator.DefaultEssences(CropManager.GetCropReferenceBySeedId(who.ActiveObject.QualifiedItemId));
+            CropEssences essences = CropManager.GrabEssences(who.ActiveObject) ?? EssenceCalculator.DefaultEssences(CropManager.GetCropReferenceBySeedId(who.ActiveObject.QualifiedItemId)) ?? EssenceCalculator.EmptyEssences;
             
             __instance.crop.modData[Agromancy.Manifest.UniqueID] = JsonConvert.SerializeObject(essences);
         }

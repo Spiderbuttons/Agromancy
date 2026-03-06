@@ -369,6 +369,23 @@ public partial class AgrometerMenu
                     randomJitter = new Vector2((float)(rng.NextDouble() - 0.5) * 4f,
                         (float)(rng.NextDouble() - 0.5) * 4f);
                 }
+
+                if (i is 2)
+                {
+                    b.End();
+                    
+                    Agromancy.DissolveFx.Parameters["PerlinNoise"].SetValue(Agromancy.PerlinNoise);
+                    Agromancy.DissolveFx.Parameters["UseNoiseColour"].SetValue(false);
+                    Agromancy.DissolveFx.Parameters["ClipThreshold"].SetValue(MathHelper.Lerp(0f, 1.25f, timeDraining / 3500f));
+                    
+                    b.Begin(
+                        SpriteSortMode.Deferred,
+                        BlendState.AlphaBlend,
+                        SamplerState.PointClamp,
+                        effect: Agromancy.DissolveFx
+                    );
+                }
+                
                 b.Draw(
                     texture: texture,
                     position: slotPosition + new Vector2(0, -2) + randomJitter,
@@ -391,6 +408,12 @@ public partial class AgrometerMenu
                         scale: GetItemSlotScale(i).X * 2f,
                         layerDepth: 0.52f,
                         c: Color.White);
+                    b.End();
+                    b.Begin(
+                        SpriteSortMode.Deferred,
+                        BlendState.AlphaBlend,
+                        SamplerState.PointClamp
+                    );
                 }
                 // b.DrawString(
                 //     Game1.smallFont,

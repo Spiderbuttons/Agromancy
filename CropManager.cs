@@ -66,7 +66,7 @@ public class CropManager
     public static Item ModifyHarvestedCrop(Item harvest, Crop crop)
     {
         Log.Alert("Modifying crop harvest.");
-        CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(GetCropReferenceByCropId($"(O){crop.indexOfHarvest.Value}"));
+        CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(GetCropReferenceByCropId($"(O){crop.indexOfHarvest.Value}")) ?? EssenceCalculator.EmptyEssences;
         essences.Mutate(range: 5, positiveOnly: true); // TODO: Config option to allow negative mutations.
         
         return (Item)harvest.ApplyEssences(essences);
@@ -84,6 +84,16 @@ public class CropManager
         return CropIdToCropDataLookup.GetValueOrDefault(cropId);
     }
 
+    public static AgroCropReference? GetCropReference(string itemId)
+    {
+        EnsureLookups();
+        if (SeedIdToCropDataLookup.TryGetValue(itemId, out AgroCropReference? cropRef) ||
+            CropIdToCropDataLookup.TryGetValue(itemId, out cropRef))
+            return cropRef;
+
+        return null;
+    }
+
     private void OnInventoryChanged(object? sender, InventoryChangedEventArgs e)
     {
         EnsureLookups();
@@ -98,7 +108,7 @@ public class CropManager
             
             Log.Error("Adding Crop Essences to " + item.DisplayName);
             
-            CropEssences newCropEssences = EssenceCalculator.DefaultEssences(cropRef);
+            CropEssences newCropEssences = EssenceCalculator.DefaultEssences(cropRef) ?? EssenceCalculator.EmptyEssences;
             item.modData[Agromancy.Manifest.UniqueID] = JsonConvert.SerializeObject(newCropEssences);
         }
     }

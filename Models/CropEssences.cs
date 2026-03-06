@@ -8,4 +8,16 @@ public class CropEssences
     public byte GiantEssence { get; set; }
     public byte WaterEssence { get; set; }
     public byte SeedEssence { get; set; }
+    
+    public override string ToString()
+    {
+        return "{" +
+               $"YieldEssence: {YieldEssence}, " +
+               $"QualityEssence: {QualityEssence}, " +
+               $"GrowthEssence: {GrowthEssence}, " +
+               $"GiantEssence: {GiantEssence}, " +
+               $"WaterEssence: {WaterEssence}, " +
+               $"SeedEssence: {SeedEssence}" +
+               "}";
+    }
 }

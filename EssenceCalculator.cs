@@ -57,6 +57,26 @@ public static class EssenceCalculator
         return (byte)mutatedValue;
     }
 
+    public static CropEssences AverageEssences(Tuple<CropEssences, int> essenceOne, Tuple<CropEssences, int> essenceTwo)
+    {
+        // If we're averaging out, then we want to combine the essences of each and divide by the total stack size.
+        // (The second item in the tuple is the stack size.)
+        
+        int totalStack = essenceOne.Item2 + essenceTwo.Item2;
+        if (totalStack == 0) return EmptyEssences;
+        
+        CropEssences combinedEssences = new CropEssences
+        {
+            YieldEssence = (byte)((essenceOne.Item1.YieldEssence * essenceOne.Item2 + essenceTwo.Item1.YieldEssence * essenceTwo.Item2) / totalStack),
+            QualityEssence = (byte)((essenceOne.Item1.QualityEssence * essenceOne.Item2 + essenceTwo.Item1.QualityEssence * essenceTwo.Item2) / totalStack),
+            GrowthEssence = (byte)((essenceOne.Item1.GrowthEssence * essenceOne.Item2 + essenceTwo.Item1.GrowthEssence * essenceTwo.Item2) / totalStack),
+            GiantEssence = (byte)((essenceOne.Item1.GiantEssence * essenceOne.Item2 + essenceTwo.Item1.GiantEssence * essenceTwo.Item2) / totalStack),
+            WaterEssence = (byte)((essenceOne.Item1.WaterEssence * essenceOne.Item2 + essenceTwo.Item1.WaterEssence * essenceTwo.Item2) / totalStack),
+            SeedEssence = (byte)((essenceOne.Item1.SeedEssence * essenceOne.Item2 + essenceTwo.Item1.SeedEssence * essenceTwo.Item2) / totalStack)
+        };
+        return combinedEssences;
+    }
+
     public static CropEssences RandomEssences()
     {
         Random rng = new Random();
@@ -143,20 +163,9 @@ public static class EssenceCalculator
         };
     }
 
-    public static CropEssences DefaultEssences(AgroCropReference? cropRef)
+    public static CropEssences? DefaultEssences(AgroCropReference? cropRef)
     {
-        if (cropRef is null)
-        {
-            return new CropEssences
-            {
-                YieldEssence = 0,
-                QualityEssence = 0,
-                GrowthEssence = 0,
-                GiantEssence = 0,
-                WaterEssence = 0,
-                SeedEssence = 0
-            };
-        }
+        if (cropRef is null) return null;
         
         return new CropEssences
         {

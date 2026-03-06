@@ -44,6 +44,7 @@ namespace Agromancy
         public static Effect BlurFx = null!;
         public static Effect StatsFx = null!;
         public static Effect LiquidCircleFx = null!;
+        public static Effect DissolveFx = null!;
 
         internal static string UNIQUE_ID => Manifest.UniqueID;
 
@@ -64,6 +65,7 @@ namespace Agromancy
 
             try
             {
+                // TODO: Path.Combine
                 byte[] stream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/grayscale.mgfx"));
                 GrayscaleFx = new Effect(Game1.graphics.GraphicsDevice, stream);
                 byte[] blurStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/blur.mgfx"));
@@ -72,6 +74,8 @@ namespace Agromancy
                 StatsFx = new Effect(Game1.graphics.GraphicsDevice, statsStream);
                 byte[] liquidCircleStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/liquidcircle.mgfx"));
                 LiquidCircleFx = new Effect(Game1.graphics.GraphicsDevice, liquidCircleStream);
+                byte[] dissolveStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/dissolve.mgfx"));
+                DissolveFx = new Effect(Game1.graphics.GraphicsDevice, dissolveStream);
             }
             catch (Exception e)
             {
@@ -268,24 +272,14 @@ namespace Agromancy
             if (e.Button is SButton.F8)
             {
                 Log.Warn($"Current Essences on held item:");
-                // if (Game1.player.ActiveObject is not null &&
-                //     Game1.player.ActiveObject.modData.ContainsKey(Manifest.UniqueID))
-                // {
-                //     CropEssences essences =
-                //         JsonConvert.DeserializeObject<CropEssences>(
-                //             Game1.player.ActiveObject.modData[Manifest.UniqueID]!)!;
-                //     foreach (var prop in typeof(CropEssences).GetProperties())
-                //     {
-                //         if (prop.PropertyType == typeof(byte[]))
-                //         {
-                //             byte[] arr = (byte[])prop.GetValue(essences)!;
-                //             Log.Info($"{prop.Name}: [{string.Join(", ", arr)}]");
-                //         }
-                //         else Log.Info($"{prop.Name}: {prop.GetValue(essences)}");
-                //     }
-                // }
+                if (Game1.player.ActiveObject is not null &&
+                    Game1.player.ActiveObject.modData.ContainsKey(Manifest.UniqueID))
+                {
+                    CropEssences essences = JsonConvert.DeserializeObject<CropEssences>(Game1.player.ActiveObject.modData[Manifest.UniqueID]!)!;
+                    Log.Debug(essences);
+                }
 
-                Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());
+                // Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());
             }
 
             if (e.Button is SButton.F5 && Game1.player.ActiveObject is not null)
