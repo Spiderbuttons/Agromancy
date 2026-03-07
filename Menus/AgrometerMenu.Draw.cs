@@ -26,7 +26,7 @@ public partial class AgrometerMenu
             position: GetAgrometerCenter(),
             sourceRectangle: new Rectangle(0, 0, agrometerCircles.Width, agrometerCircles.Height),
             color: Color.White * 0.5f,
-            rotation: 0f,
+            rotation: currentMenuRotation / 360f * MathHelper.TwoPi,
             origin: new Vector2(agrometerCircles.Width / 2f, agrometerCircles.Height / 2f),
             scale: GetAgrometerRingScale(),
             effects: SpriteEffects.None,
@@ -43,7 +43,7 @@ public partial class AgrometerMenu
             position: GetAgrometerCenter(),
             sourceRectangle: new Rectangle(0, 0, agrometerFrame.Width, agrometerFrame.Height),
             color: Color.White,
-            rotation: 0f,
+            rotation: currentMenuRotation / 360f * MathHelper.TwoPi,
             origin: new Vector2(agrometerFrame.Width / 2f, agrometerFrame.Height / 2f),
             scale: GetAgrometerScale(),
             effects: SpriteEffects.None,
@@ -90,13 +90,21 @@ public partial class AgrometerMenu
         itemSlotSourceRect.Width -= 4;
         itemSlotSourceRect.Height -= 4;
         Vector2 slotPosition = GetEssenceVialSlotPosition();
+        
+        Color extractColour = Color.DarkRed;
+        Color inputColour = Color.SteelBlue;
+        
+        Color colourOne = isExtractMode ? inputColour : extractColour;
+        Color colourTwo = isExtractMode ? extractColour : inputColour;
+        float rotationLerp = MathHelper.Lerp(0, 1, Math.Abs(180 - (currentMenuRotation % 360)) / 180f);
+        Color currentVialSlotColour = Color.Lerp(isExtractMode ? colourOne : colourTwo, isExtractMode ? colourTwo : colourOne, rotationLerp);   
 
         b.Draw(
             texture: itemSlotTexture,
             position: slotPosition,
             sourceRectangle: itemSlotSourceRect,
-            color: new Color(88, 57, 40),
-            rotation: 0f,
+            color: Color.Lerp(new Color(88, 57, 40), currentVialSlotColour, 0.5f),
+            rotation: currentMenuRotation / 360f * MathHelper.TwoPi,
             origin: new Vector2(itemSlotSourceRect.Width / 2f, itemSlotSourceRect.Height / 2f),
             scale: GetItemSlotScale(2) * 0.75f,
             effects: SpriteEffects.None,
@@ -111,22 +119,28 @@ public partial class AgrometerMenu
                 (float)(rng.NextDouble() - 0.5) * 4f);
         }
         
-        if (EssenceVial is not null) {
-            EssenceVial.drawInMenu(
-                spriteBatch: b,
-                location: slotPosition + new Vector2(0, -2) - new Vector2(texture.Width, texture.Height * 2f) + randomJitter,
-                scaleSize: GetItemSlotScale(2).X * 0.6f * 0.75f,
-                transparency: 1f * (EssenceVial is not null ? 1f : 0.4f),
+        if (EssenceVial is not null)
+        {
+            Rectangle sourceRect = iData.GetSourceRect(0, EssenceVial.ParentSheetIndex);
+            b.Draw(
+                texture: texture,
+                position: slotPosition + new Vector2(0, slotPosition.Y >= Game1.uiViewport.Height / 2f ? -2 : 2) - new Vector2(texture.Width, texture.Height * 2f) + randomJitter + new Vector2(32f, 32f),
+                sourceRectangle: sourceRect,
+                color: Color.White * 1f * (EssenceVial is not null ? 1f : 0.4f),
+                rotation: currentMenuRotation / 360f * MathHelper.TwoPi,
+                origin: new Vector2(sourceRect.Width / 2f, sourceRect.Height / 2f),
+                scale: 4f * GetItemSlotScale(2).X * 0.6f * 0.75f,
+                effects: SpriteEffects.None,
                 layerDepth: 0.51f);
         }
         else
         {
             b.Draw(
                 texture: texture,
-                position: slotPosition + new Vector2(0, -2) + randomJitter,
+                position: slotPosition + new Vector2(0, slotPosition.Y >= Game1.uiViewport.Height / 2f ? -2 : 2) + randomJitter,
                 sourceRectangle: iData.DefaultSourceRect,
                 color: EssenceVial is not null ? Color.White : Color.Black * 0.4f,
-                rotation: 0f,
+                rotation: currentMenuRotation / 360f * MathHelper.TwoPi,
                 origin: new Vector2(iData.DefaultSourceRect.Width / 2f, iData.DefaultSourceRect.Height / 2f),
                 scale: GetItemSlotScale(2) * 4f * 0.6f * 0.75f,
                 effects: SpriteEffects.None,
@@ -155,13 +169,7 @@ public partial class AgrometerMenu
         List<Vector3> pointsAroundAgrometer = new();
         for (int i = 0; i < 12; i++)
         {
-            Vector2 pointOnCircle = new Vector2(
-                GetAgrometerCenter().X + radius * (float)Math.Cos(
-                    MathHelper.ToRadians(i * 30 +
-                                         (int)(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 25 % 360))),
-                GetAgrometerCenter().Y + radius * (float)Math.Sin(
-                    MathHelper.ToRadians(i * 30 +
-                                         (int)(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 25 % 360)))
+            Vector2 pointOnCircle = new Vector2(GetAgrometerCenter().X + radius * (float)Math.Cos(MathHelper.ToRadians(i * 30 - currentMenuRotation + (int)(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 25 % 360))), GetAgrometerCenter().Y + radius * (float)Math.Sin(MathHelper.ToRadians(i * 30 - currentMenuRotation + (int)(Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 25 % 360)))
             );
             pointsAroundAgrometer.Add(PrimitiveNormalize(pointOnCircle));
         }
@@ -202,7 +210,7 @@ public partial class AgrometerMenu
         StatsFx.Parameters["BlobMinRadius"].SetValue(Game1.viewport.Height * 0.15f);
         StatsFx.Parameters["BlobMaxRadius"].SetValue(Game1.viewport.Height * 0.5f);
         // StatsFx.Parameters["StatPercentage"].SetValue((float)(Game1.getMousePosition().X / (float)Game1.viewport.Width));
-        StatsFx.Parameters["StatPercentage"].SetValue(currentTotalEssencePct);
+        StatsFx.Parameters["StatPercentage"].SetValue(MathHelper.Lerp(-0.1f, 1f, currentTotalEssencePct));
         StatsFx.Parameters["UseNoiseColour"].SetValue(true);
         StatsFx.Parameters["FadeOut"].SetValue(true);
         StatsFx.Parameters["Saturation"].SetValue(1.75f);
@@ -237,7 +245,7 @@ public partial class AgrometerMenu
         
         for (int i = 0; i < EssenceCenters.Values.Count; i++)
         {
-            Vector2 position = new Vector2(EssenceCenters[i].X, EssenceCenters[i].Y);
+            Vector2 position = GetEssenceCenter(i);
 
             float FillPercentage = currentEssencePct[i];
             // The waviness means it won't appear full even at 100%, so this next line just adds a little extra percentage for visuals.
@@ -360,15 +368,17 @@ public partial class AgrometerMenu
 
             if (agromancyCrops.Any())
             {
-                Item item = agromancyCrops[(i + itemListOffset) % agromancyCrops.Count];
+                Item item = agromancyCrops.Keys.ElementAt((i + itemListOffset) % agromancyCrops.Count);
                 ParsedItemData iData = ItemRegistry.GetData(item.QualifiedItemId);
                 Texture2D texture = iData.GetTexture();
                 Vector2 randomJitter = Vector2.Zero;
-                if (IsCropBeingDrained && i is 2 && EssenceVial is not null)
+                if ((IsCropBeingDrained || isCropSuckedDry) && i is 2 && EssenceVial is not null)
                 {
                     randomJitter = new Vector2((float)(rng.NextDouble() - 0.5) * 4f,
                         (float)(rng.NextDouble() - 0.5) * 4f);
                 }
+                
+                float suckingDryLerp = MathHelper.Lerp(0.2f, 0.75f, timeSinceSuckingDry / 3500f);
 
                 if (i is 2)
                 {
@@ -376,7 +386,7 @@ public partial class AgrometerMenu
                     
                     Agromancy.DissolveFx.Parameters["PerlinNoise"].SetValue(Agromancy.PerlinNoise);
                     Agromancy.DissolveFx.Parameters["UseNoiseColour"].SetValue(false);
-                    Agromancy.DissolveFx.Parameters["ClipThreshold"].SetValue(MathHelper.Lerp(0f, 1.25f, timeDraining / 3500f));
+                    Agromancy.DissolveFx.Parameters["ClipThreshold"].SetValue(suckingDryLerp);
                     
                     b.Begin(
                         SpriteSortMode.Deferred,
@@ -393,14 +403,18 @@ public partial class AgrometerMenu
                     color: Color.White * (1f - 0.45f * Math.Abs(2 - i)),
                     rotation: 0f,
                     origin: new Vector2(iData.DefaultSourceRect.Width / 2f, iData.DefaultSourceRect.Height / 2f),
-                    scale: GetItemSlotScale(i) * 4f * 0.6f,
+                    scale: GetItemSlotScale(i) * 4f * 0.6f * (i is 2 ? 1f - suckingDryLerp + 0.2f : 1f),
                     effects: SpriteEffects.None,
                     layerDepth: 0.51f);
-                
+
                 if (i is 2)
                 {
-                    float stringLength = Game1.tinyFont.MeasureString(item.Stack.ToString()).X + 2; // The extra 2 is to account for the black outline.
-                    Vector2 textPosition = GetAgrometerCenter() - new Vector2(stringLength / 2f - itemSlotSourceRect.Width / 4f, -12f) * GetItemSlotScale(i);
+                    float stringLength =
+                        Game1.tinyFont.MeasureString(item.Stack.ToString()).X +
+                        2; // The extra 2 is to account for the black outline.
+                    Vector2 textPosition = GetAgrometerCenter() -
+                                           new Vector2(stringLength / 2f - itemSlotSourceRect.Width / 4f, -12f) *
+                                           GetItemSlotScale(i);
                     Utility.drawTinyDigits(
                         toDraw: item.Stack,
                         b: b,
@@ -433,8 +447,8 @@ public partial class AgrometerMenu
     public override void drawBackground(SpriteBatch b)
     {
         // base.drawBackground(b);
-        b.Draw(Game1.staminaRect, new Rectangle(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height),
-            Color.Blue * 0.92f);
+        // b.Draw(Game1.staminaRect, new Rectangle(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height),
+        //     Color.Blue * 0.92f);
     }
     
     private void drawTextCenteredAtPoint(SpriteBatch b, string text, Vector2 point, SpriteFont font, Color color, float scale, float layerDepth)

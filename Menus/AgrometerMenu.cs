@@ -19,8 +19,6 @@ public partial class AgrometerMenu : IClickableMenu
     private Tool Agrometer;
     private Item? EssenceVial;
 
-    public int MillisecondsMenuHasBeenOpen;
-
     private bool shouldAllowClick = false;
 
     private Texture2D agrometerFrame;
@@ -38,6 +36,11 @@ public partial class AgrometerMenu : IClickableMenu
 
     private int timeDraining = 0;
 
+    private bool isCropSuckedDry => GetCurrentlySelectedCropEssences() is { } essences && EssenceCalculator.PercentToPerfectCrop(essences) <= 0;
+    private int timeSinceSuckingDry = 0;
+
+    private bool isExtractMode = true;
+
     public Random rng = new();
 
     private Texture2D ArrowsTexture => Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/MonochromeArrows");
@@ -49,13 +52,12 @@ public partial class AgrometerMenu : IClickableMenu
     public ClickableTextureComponent UpArrow;
     public ClickableTextureComponent DownArrow;
 
-    List<Item> agromancyCrops => GetItemsWithAgromancyData();
+    Dictionary<Item, int> agromancyCrops => GetItemsWithAgromancyData();
 
     public AgrometerMenu(Tool agrometer)
     {
         Agrometer = agrometer;
         EssenceVial = GetEssenceVial();
-        MillisecondsMenuHasBeenOpen = Game1.currentGameTime.TotalGameTime.Milliseconds;
 
         agrometerFrame = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerFrame");
         agrometerCircles = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerCircles");
@@ -97,28 +99,9 @@ public partial class AgrometerMenu : IClickableMenu
         EssenceCenters = GetEssenceCenters();
     }
 
-    public override void receiveGamePadButton(Buttons button)
-    {
-        base.receiveGamePadButton(button);
-
-        if (button is Buttons.DPadUp or Buttons.LeftThumbstickUp)
-        {
-            ScrollItem(-1);
-        }
-        else if (button is Buttons.DPadDown or Buttons.LeftThumbstickDown)
-        {
-            ScrollItem(1);
-        }
-    }
-
     public override void populateClickableComponentList()
     {
         base.populateClickableComponentList();
-    }
-
-    public override void applyMovementKey(int direction)
-    {
-        base.applyMovementKey(direction);
     }
 
     public override bool IsActive()
@@ -136,59 +119,6 @@ public partial class AgrometerMenu : IClickableMenu
         base.gameWindowSizeChanged(oldBounds, newBounds);
         shouldUpdateArrows = true;
         EssenceCenters = GetEssenceCenters();
-    }
-
-    public override void releaseLeftClick(int x, int y)
-    {
-        base.releaseLeftClick(x, y);
-        shouldAllowClick = true;
-        IsCropBeingDrained = false;
-        for (int i = 0; i < EssencesBeingDrained.Count; i++)
-        {
-            EssencesBeingDrained[i] = false;
-        }
-    }
-
-    public override void leftClickHeld(int x, int y)
-    {
-        if (!shouldAllowClick) return;
-
-        base.leftClickHeld(x, y);
-        bool foundDrainedEssence = false;
-        foreach (var (essenceIdx, essenceCircle) in EssenceCenters)
-        {
-            if (PointInCircle(new Vector2(x, y), new Vector2(essenceCircle.X, essenceCircle.Y), essenceCircle.Z))
-            {
-                foundDrainedEssence = true;
-                EssencesBeingDrained[essenceIdx] = true;
-            }
-            else EssencesBeingDrained[essenceIdx] = false;
-
-            if (EssencesBeingDrained[essenceIdx])
-            {
-                bool didDrain = drainEssence(essenceIdx);
-                if (didDrain)
-                {
-                    createParticleFromDraining(essenceIdx, essenceCircle);
-                }
-                else
-                {
-                    cannotDrainEssenceFeedback();
-                }
-            }
-        }
-
-        Vector2 extractAllPosition = GetExtractAllPosition();
-        var extractAllRect = new Rectangle((int)(extractAllPosition.X - 32 * GetItemSlotScale(2).X * 0.75f),
-            (int)(extractAllPosition.Y - 32 * GetItemSlotScale(2).X * 0.75f), (int)(64 * GetItemSlotScale(2).X * 0.75f),
-            (int)(64 * GetItemSlotScale(2).X * 0.75f));
-        if (extractAllRect.Contains(x, y))
-        {
-            foundDrainedEssence = true;
-            drainAllEssences();
-        }
-
-        IsCropBeingDrained = foundDrainedEssence;
     }
 
     private void drainAllEssences()
@@ -250,55 +180,9 @@ public partial class AgrometerMenu : IClickableMenu
         unsuccessfulDrainCooldown = 1000;
     }
 
-    public override void receiveLeftClick(int x, int y, bool playSound = true)
-    {
-        // base.receiveLeftClick(x, y, playSound);
-        if (!shouldAllowClick) return;
-
-        if (UpArrow.bounds.Contains(x, y) || DownArrow.bounds.Contains(x, y))
-        {
-            int direction = UpArrow.bounds.Contains(x, y) ? -1 : 1;
-            ScrollItem(direction);
-        }
-    }
-
     private void ScrollItem(int direction)
     {
         itemListOffset = (itemListOffset + direction + agromancyCrops.Count) % Math.Max(1, agromancyCrops.Count);
-    }
-
-    public override void receiveRightClick(int x, int y, bool playSound = true)
-    {
-        base.receiveRightClick(x, y, playSound);
-    }
-
-    public override void receiveKeyPress(Keys key)
-    {
-        base.receiveKeyPress(key);
-        // TODO: Gamepad support.
-    }
-
-    public override void gamePadButtonHeld(Buttons b)
-    {
-        base.gamePadButtonHeld(b);
-    }
-
-    public override void receiveScrollWheelAction(int direction)
-    {
-        int scrollDirection = direction > 0 ? -1 : 1;
-        ScrollItem(scrollDirection);
-    }
-
-    public override void performHoverAction(int x, int y)
-    {
-        foreach (var (essenceIdx, essenceCircle) in EssenceCenters)
-        {
-            if (PointInCircle(new Vector2(x, y), new Vector2(essenceCircle.X, essenceCircle.Y), essenceCircle.Z))
-            {
-                targetEssenceScale[essenceIdx] = 1.15f;
-            }
-            else targetEssenceScale[essenceIdx] = 1f;
-        }
     }
 
     public override void cleanupBeforeExit()
@@ -318,6 +202,6 @@ public partial class AgrometerMenu : IClickableMenu
 
     public override bool readyToClose()
     {
-        return base.readyToClose();
+        return base.readyToClose() && !IsCropBeingDrained && !isCropSuckedDry;
     }
 }

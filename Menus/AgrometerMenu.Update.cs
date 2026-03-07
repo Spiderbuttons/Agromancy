@@ -3,6 +3,8 @@ using System.Linq;
 using Agromancy.Helpers;
 using Agromancy.Models;
 using Microsoft.Xna.Framework;
+using StardewValley;
+using StardewValley.Extensions;
 using StardewValley.Menus;
 
 namespace Agromancy.Menus;
@@ -20,9 +22,15 @@ public partial class AgrometerMenu
     private float[] targetEssenceScale = new float[6];
     private float[] currentEssenceScale = new float[6];
     
+    private int suckedDryNoiseCooldown = 0;
+    private bool alreadyCreatedSuckedDryParticles = false;
+
+    private float targetMenuRotation = 0f;
+    private float currentMenuRotation = 0f;
+    private float rotationAcceleration = 0f;
+    
     public override void update(GameTime time)
     {
-        MillisecondsMenuHasBeenOpen += time.ElapsedGameTime.Milliseconds;
         for (var index = 0; index < drainParticleCooldown.Length; index++)
         {
             var cooldown = drainParticleCooldown[index];
@@ -35,11 +43,68 @@ public partial class AgrometerMenu
         if (IsCropBeingDrained) timeDraining += time.ElapsedGameTime.Milliseconds;
         else timeDraining = 0;
         
+        if (isCropSuckedDry) timeSinceSuckingDry += time.ElapsedGameTime.Milliseconds;
+        else timeSinceSuckingDry = 0;
+
+        if (isCropSuckedDry && suckedDryNoiseCooldown <= 0 && timeSinceSuckingDry <= 2800f)
+        {
+            Game1.playSound("boulderCrack", out var cue);
+            cue.Pitch = 0.1f + (float)rng.NextDouble() * 0.35f;
+            suckedDryNoiseCooldown = 85;
+        } else if (isCropSuckedDry)
+        {
+            suckedDryNoiseCooldown -= time.ElapsedGameTime.Milliseconds;
+        }
+
+        if (timeSinceSuckingDry >= 2800f && !alreadyCreatedSuckedDryParticles)
+        {
+            float radius = 25f;
+            for (int i = 0; i < 12; i++)
+            {
+                double angle = rng.NextDouble() * Math.PI * 2;
+                Vector2 startPosition = GetAgrometerCenter();
+                Vector2 endPosition = GetAgrometerCenter() + new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * radius * GetAgrometerScale().X;
+                createParticle(startPosition, endPosition, Color.Lerp(Color.WhiteSmoke, GetEssenceColour(i % 6), 0.25f), GetAgrometerScale());
+                alreadyCreatedSuckedDryParticles = true;
+            }
+        }
+
+        if (timeSinceSuckingDry >= 4500f)
+        {
+            poofCurrentItem();
+        }
+        
+        updateMenuRotation();
         updateTotalEssencePercent();
         updateEssencePercents();
         updateArrows();
         updateHoveredEssence();
         updateParticles();
+    }
+
+    public void updateMenuRotation()
+    {
+        currentMenuRotation += rotationAcceleration;
+        if (currentMenuRotation < targetMenuRotation)
+        {
+            // This is supposed to slow the acceleration-changing down if we're close to 0.
+            // But tbh I just kinda fucked around with numbers and lerp here and idk if that's actually what it's doing LOL
+            float distanceToPositiveAcceleration = Math.Abs(0f - rotationAcceleration);
+            rotationAcceleration = MathHelper.Lerp(rotationAcceleration, 15f, MathHelper.Lerp(0.025f, 0.015f, MathHelper.Lerp(0f, 1f, distanceToPositiveAcceleration / 15f)));
+        } else
+        {
+            rotationAcceleration = MathHelper.Lerp(rotationAcceleration, -15f, 0.025f);
+        }
+        // Damping so we don't bounce back and forth when we overshoot the target endlessly.
+        if (Math.Abs(currentMenuRotation - targetMenuRotation) < 30f)
+        {
+            rotationAcceleration *= 0.9f;
+        }
+        if (Math.Abs(currentMenuRotation - targetMenuRotation) < 0.75f && Math.Abs(rotationAcceleration) < 0.25f)
+        {
+            currentMenuRotation = targetMenuRotation;
+            rotationAcceleration = 0f;
+        }
     }
 
     private void updateHoveredEssence()

@@ -271,15 +271,14 @@ namespace Agromancy
 
             if (e.Button is SButton.F8)
             {
-                Log.Warn($"Current Essences on held item:");
+                Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());
+                Log.Warn($"Random Essences on held item:");
                 if (Game1.player.ActiveObject is not null &&
                     Game1.player.ActiveObject.modData.ContainsKey(Manifest.UniqueID))
                 {
                     CropEssences essences = JsonConvert.DeserializeObject<CropEssences>(Game1.player.ActiveObject.modData[Manifest.UniqueID]!)!;
                     Log.Debug(essences);
                 }
-
-                // Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());
             }
 
             if (e.Button is SButton.F5 && Game1.player.ActiveObject is not null)
