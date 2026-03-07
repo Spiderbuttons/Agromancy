@@ -95,8 +95,6 @@ public partial class AgrometerMenu : IClickableMenu
             texture: ArrowsTexture,
             sourceRect: DownArrowSourceRect,
             scale: GetAgrometerScale().X * 2f);
-
-        EssenceCenters = GetEssenceCenters();
     }
 
     public override void populateClickableComponentList()
@@ -118,7 +116,6 @@ public partial class AgrometerMenu : IClickableMenu
     {
         base.gameWindowSizeChanged(oldBounds, newBounds);
         shouldUpdateArrows = true;
-        EssenceCenters = GetEssenceCenters();
     }
 
     private void drainAllEssences()
@@ -131,7 +128,7 @@ public partial class AgrometerMenu : IClickableMenu
             if (didDrain)
             {
                 didDrainAny = true;
-                createParticleFromDraining(i, EssenceCenters[i], silent: true);
+                createParticleFromDraining(i, GetEssenceCenter(i), silent: true);
             }
         }
 

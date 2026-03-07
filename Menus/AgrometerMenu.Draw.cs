@@ -12,8 +12,6 @@ namespace Agromancy.Menus;
 
 public partial class AgrometerMenu
 {
-    private Dictionary<int, Vector3> EssenceCenters = new();
-    
     public override void draw(SpriteBatch b)
     {
         b.End();
@@ -243,7 +241,7 @@ public partial class AgrometerMenu
         float radius = GetEssenceContainerRadius() * 0.95f;
         Agromancy.LiquidCircleFx.Parameters["CircleRadius"].SetValue(radius);
         
-        for (int i = 0; i < EssenceCenters.Values.Count; i++)
+        for (int i = 0; i < 6; i++)
         {
             Vector2 position = GetEssenceCenter(i);
 

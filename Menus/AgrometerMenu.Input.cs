@@ -36,21 +36,24 @@ public partial class AgrometerMenu
 
         base.leftClickHeld(x, y);
         bool foundDrainedEssence = false;
-        foreach (var (essenceIdx, essenceCircle) in EssenceCenters)
+        
+        for (int i = 0; i < 6; i++)
         {
-            if (IsPointInCircle(new Vector2(x, y), new Vector2(essenceCircle.X, essenceCircle.Y), essenceCircle.Z))
+            Vector2 essenceCenter = GetEssenceCenter(i);
+            float radius = GetEssenceContainerRadius() * 0.1f;
+            if (IsPointInCircle(new Vector2(x, y), essenceCenter, radius))
             {
                 foundDrainedEssence = true;
-                EssencesBeingDrained[essenceIdx] = true;
+                EssencesBeingDrained[i] = true;
             }
-            else EssencesBeingDrained[essenceIdx] = false;
+            else EssencesBeingDrained[i] = false;
 
-            if (EssencesBeingDrained[essenceIdx])
+            if (EssencesBeingDrained[i])
             {
-                bool didDrain = drainEssence(essenceIdx);
+                bool didDrain = drainEssence(i);
                 if (didDrain)
                 {
-                    createParticleFromDraining(essenceIdx, essenceCircle);
+                    createParticleFromDraining(i, essenceCenter);
                 }
                 else
                 {
@@ -99,13 +102,16 @@ public partial class AgrometerMenu
 
     public override void performHoverAction(int x, int y)
     {
-        foreach (var (essenceIdx, essenceCircle) in EssenceCenters)
+        for (int i = 0; i < 6; i++)
         {
-            if (IsPointInCircle(new Vector2(x, y), new Vector2(essenceCircle.X, essenceCircle.Y), essenceCircle.Z))
+            Vector2 center = GetEssenceCenter(i);
+            float radius = GetEssenceContainerRadius() * 0.1f;
+            float distanceFromMouse = Vector2.Distance(new Vector2(x, y), center);
+            if (distanceFromMouse < radius)
             {
-                targetEssenceScale[essenceIdx] = 1.15f;
+                targetEssenceScale[i] = 1.15f;
             }
-            else targetEssenceScale[essenceIdx] = 1f;
+            else targetEssenceScale[i] = 1f;
         }
     }
     

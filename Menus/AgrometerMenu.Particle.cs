@@ -76,7 +76,7 @@ public partial class AgrometerMenu
         drainParticles.Add(new Particle(particleTexture, sourceRect, colour, startPosition, endPosition, scale, rotation));
     }
 
-    private void createParticleFromDraining(int essenceIdx, Vector3 essenceCircle, bool silent = false)
+    private void createParticleFromDraining(int essenceIdx, Vector2 essenceCircle, bool silent = false)
     {
         if (drainParticleCooldown[essenceIdx] > 0) return;
         
