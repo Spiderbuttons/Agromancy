@@ -76,20 +76,20 @@ public partial class AgrometerMenu
         drainParticles.Add(new Particle(particleTexture, sourceRect, colour, startPosition, endPosition, scale, rotation));
     }
 
-    private void createParticleFromDraining(int essenceIdx, Vector2 essenceCircle, bool silent = false)
+    private void createParticleFromDraining(int essenceIdx, Vector2 essenceCircle, bool silent = false, bool fromVial = false)
     {
         if (drainParticleCooldown[essenceIdx] > 0) return;
         
         createParticle(
-            startPosition: new Vector2(essenceCircle.X, essenceCircle.Y),
-            endPosition: GetEssenceVialSlotPosition(),
+            startPosition: fromVial ? GetEssenceVialSlotPosition() : essenceCircle,
+            endPosition: fromVial ? essenceCircle : GetEssenceVialSlotPosition(),
             colour: GetEssenceColour(essenceIdx),
             scale: new Vector2(1f, 1f) * GetAgrometerScale().X
         );
         if (!silent)
         {
-            Game1.playSound("boulderCrack", out var cue);
-            cue.Pitch = 0.1f + (float)rng.NextDouble() * 0.35f;
+            Game1.playSound(fromVial ? "cavedrip" : "boulderCrack", out var cue);
+            cue.Pitch = (fromVial ? 0.5f : 0.1f) + (float)rng.NextDouble() * 0.35f;
         }
 
         drainParticleCooldown[essenceIdx] = 85;

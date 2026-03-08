@@ -80,6 +80,11 @@ public partial class AgrometerMenu
         return essences;
     }
 
+    private float GetEssenceInVial(int essenceIdx)
+    {
+        return EssenceVial?.modData[$"{Agromancy.UNIQUE_ID}_{essenceIdx}"] is not { } s ? 0 : float.Parse(s);
+    }
+
     private Vector2 GetEssenceCenter(int essenceIdx)
     {
         Vector2 center = GetAgrometerCenter();

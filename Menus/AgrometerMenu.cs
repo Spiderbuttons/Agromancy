@@ -128,7 +128,7 @@ public partial class AgrometerMenu : IClickableMenu
             if (didDrain)
             {
                 didDrainAny = true;
-                createParticleFromDraining(i, GetEssenceCenter(i), silent: true);
+                createParticleFromDraining(i, GetEssenceCenter(i), silent: true, fromVial: !isExtractMode);
             }
         }
 
@@ -160,13 +160,66 @@ public partial class AgrometerMenu : IClickableMenu
         newEssenceAmount = Math.Max(0, newEssenceAmount);
         int essenceDiff = currentEssence - newEssenceAmount;
 
-        float currentVialAmount = EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_{essenceIdx}"] is not { } s ? 0 : float.Parse(s);
+        float currentVialAmount = GetEssenceInVial(essenceIdx);
         float newVialAmount = currentVialAmount + essenceDiff * GetCurrentlySelectedCrop()!.Stack;
         EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_{essenceIdx}"] = newVialAmount.ToString(CultureInfo.CurrentCulture);
 
         EssenceCalculator.SetEssence(essences, essenceIdx, newEssenceAmount);
         GetCurrentlySelectedCrop()!.ApplyEssences(essences);
         return true;
+    }
+
+    private bool infuseEssence(int essenceIdx)
+    {
+        if (EssenceVial is null) return false;
+
+        CropEssences? essences = GetCurrentlySelectedCropEssences();
+        if (essences is null || EssenceCalculator.GetEssence(essences, essenceIdx) >= 255)
+        {
+            return false;
+        }
+
+        if (drainParticleCooldown[essenceIdx] > 0) return true;
+        
+        float currentEssence = GetEssenceInVial(essenceIdx);
+        int amountToInfuse = (int)MathHelper.Lerp(1, 25, MathHelper.Clamp(timeDraining / 5000f, 0f, 1f)) * GetCurrentlySelectedCrop()!.Stack;
+        
+        float newVialAmount = currentEssence - amountToInfuse;
+        newVialAmount = Math.Max(0, newVialAmount);
+        float essenceDiff = currentEssence - newVialAmount;
+        
+        if (essenceDiff / GetCurrentlySelectedCrop()!.Stack <= 0) return false;
+        
+        int newEssenceAmount = EssenceCalculator.GetEssence(essences, essenceIdx) + (int)(essenceDiff / GetCurrentlySelectedCrop()!.Stack);
+        newEssenceAmount = Math.Min(255, newEssenceAmount);
+        
+        EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_{essenceIdx}"] = newVialAmount.ToString(CultureInfo.CurrentCulture);
+        EssenceCalculator.SetEssence(essences, essenceIdx, newEssenceAmount);
+        GetCurrentlySelectedCrop()!.ApplyEssences(essences);
+        return true;
+    }
+    
+    private void infuseAllEssences()
+    {
+        bool didInfuseAny = false;
+        for (int i = 0; i < EssencesBeingDrained.Count; i++)
+        {
+            EssencesBeingDrained[i] = true;
+            var didInfuse = infuseEssence(i);
+            if (didInfuse)
+            {
+                didInfuseAny = true;
+                createParticleFromDraining(i, GetEssenceCenter(i), silent: true, fromVial: !isExtractMode);
+            }
+        }
+
+        if (!didInfuseAny) cannotDrainEssenceFeedback();
+        else if (extractAllCooldown <= 0)
+        {
+            Game1.playSound("cavedrip", out var cue);
+            cue.Pitch = 0.5f + (float)rng.NextDouble() * 0.35f;
+            extractAllCooldown = 85;
+        }
     }
 
     private void cannotDrainEssenceFeedback()

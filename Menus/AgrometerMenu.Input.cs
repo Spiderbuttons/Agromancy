@@ -50,10 +50,10 @@ public partial class AgrometerMenu
 
             if (EssencesBeingDrained[i])
             {
-                bool didDrain = drainEssence(i);
+                bool didDrain = isExtractMode ? drainEssence(i) : infuseEssence(i);
                 if (didDrain)
                 {
-                    createParticleFromDraining(i, essenceCenter);
+                    createParticleFromDraining(i, essenceCenter, fromVial: !isExtractMode);
                 }
                 else
                 {
@@ -69,7 +69,8 @@ public partial class AgrometerMenu
         if (extractAllRect.Contains(x, y))
         {
             foundDrainedEssence = true;
-            drainAllEssences();
+            if (isExtractMode) drainAllEssences();
+            else infuseAllEssences();
         }
 
         IsCropBeingDrained = foundDrainedEssence;
