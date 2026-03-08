@@ -15,7 +15,7 @@ public partial class AgrometerMenu
     public override void draw(SpriteBatch b)
     {
         b.End();
-        DrawAgrometerBackground(b);
+        drawAgrometerBackground(b);
 
         b.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
 
@@ -55,10 +55,26 @@ public partial class AgrometerMenu
         drawExtractAllButton(b);
         
         drawParticles(b);
-        
+
+        drawEssenceIcons(b);
+
         drawArrows(b);
 
         drawMouse(b);
+    }
+
+    private void drawEssenceIcons(SpriteBatch b)
+    {
+        for (var i = 0; i < EssenceIcons.Count; i++)
+        {
+            float essenceIconTransparency = MathHelper.SmoothStep(0.5f, 1f, MathHelper.Clamp((currentEssenceScale[i] - 1f) / 0.15f, 0f, 1f));
+            var icon = EssenceIcons[i];
+            icon.draw(
+                b: b,
+                c: Color.Lerp(Color.Black, Color.White, essenceIconTransparency + 0.15f) * essenceIconTransparency,
+                layerDepth: 0.9f
+            );
+        }
     }
     
     private void drawExtractAllButton(SpriteBatch b)
@@ -146,7 +162,7 @@ public partial class AgrometerMenu
         }
     }
     
-    public void DrawAgrometerBackground(SpriteBatch b)
+    public void drawAgrometerBackground(SpriteBatch b)
     {
         //(°o,88,o° )/\\\\ aaah a spider
 

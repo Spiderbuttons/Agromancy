@@ -176,6 +176,11 @@ namespace Agromancy
             {
                 e.LoadFromModFile<Texture2D>("assets/objects.png", AssetLoadPriority.Exclusive);
             }
+
+            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/EssenceIcons"))
+            {
+                e.LoadFromModFile<Texture2D>("assets/essenceIcons.png", AssetLoadPriority.Medium);
+            }
         }
 
         private void OnMenuChanged(object? sender, MenuChangedEventArgs e)

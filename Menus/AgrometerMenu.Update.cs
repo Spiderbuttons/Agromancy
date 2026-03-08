@@ -75,6 +75,7 @@ public partial class AgrometerMenu
         }
         
         updateMenuRotation();
+        updateEssenceIconPositions();
         updateTotalEssencePercent();
         updateEssencePercents();
         updateArrows();
@@ -118,6 +119,17 @@ public partial class AgrometerMenu
             {
                 currentEssenceScale[i] = MathHelper.Lerp(currentEssenceScale[i], targetEssenceScale[i], 0.1f);
             }
+            EssenceIcons[i].scale = GetAgrometerScale().X * 0.75f * currentEssenceScale[i];
+        }
+    }
+
+    private void updateEssenceIconPositions()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            Vector2 center = GetEssenceCenter(i);
+            EssenceIcons[i].bounds.X = (int)(center.X - (EssenceIcons[i].bounds.Width / 2f));
+            EssenceIcons[i].bounds.Y = (int)(center.Y - (EssenceIcons[i].bounds.Height / 2f));
         }
     }
 

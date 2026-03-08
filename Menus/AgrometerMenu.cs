@@ -51,6 +51,9 @@ public partial class AgrometerMenu : IClickableMenu
 
     public ClickableTextureComponent UpArrow;
     public ClickableTextureComponent DownArrow;
+    
+    private Texture2D EssenceIconSheet => Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/EssenceIcons");
+    private List<ClickableTextureComponent> EssenceIcons = new();
 
     Dictionary<Item, int> agromancyCrops => GetItemsWithAgromancyData();
 
@@ -62,6 +65,24 @@ public partial class AgrometerMenu : IClickableMenu
         agrometerFrame = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerFrame");
         agrometerCircles = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerCircles");
         agrometerStatRing = Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AgrometerStatRing");
+
+        for (int i = 0; i < 6; i++)
+        {
+            Rectangle sourceRect = GetEssenceIconSourceRect(i);
+            float scale = GetAgrometerScale().X * 0.75f;
+            Vector2 position = GetEssenceCenter(i) - new Vector2((sourceRect.Width * scale) / 2f, (sourceRect.Height * scale) / 2f);
+            Rectangle destRect = new Rectangle((int)position.X, (int)position.Y, (int)(sourceRect.Width * scale), (int)(sourceRect.Height * scale));
+            ClickableTextureComponent icon = new ClickableTextureComponent(
+                name: $"EssenceIcon_{i}",
+                bounds: destRect,
+                label: null,
+                hoverText: null,
+                texture: EssenceIconSheet,
+                sourceRect: sourceRect,
+                scale: GetAgrometerScale().X * 0.75f
+            );
+            EssenceIcons.Add(icon);
+        }
 
         Rectangle upArrowLocation = new Rectangle(
             x: (int)(GetAgrometerCenter().X - 2 - (UpArrowSourceRect.Width) * GetAgrometerScale().X),

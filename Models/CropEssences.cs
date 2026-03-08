@@ -11,13 +11,13 @@ public class CropEssences
     
     public override string ToString()
     {
-        return "{" +
+        return "{ " +
                $"YieldEssence: {YieldEssence}, " +
                $"QualityEssence: {QualityEssence}, " +
                $"GrowthEssence: {GrowthEssence}, " +
                $"GiantEssence: {GiantEssence}, " +
                $"WaterEssence: {WaterEssence}, " +
                $"SeedEssence: {SeedEssence}" +
-               "}";
+               "} ";
     }
 }

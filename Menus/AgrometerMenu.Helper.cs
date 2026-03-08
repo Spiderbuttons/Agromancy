@@ -100,24 +100,14 @@ public partial class AgrometerMenu
         };
     }
 
-    private Dictionary<int, Vector3> GetEssenceCenters()
+    private Rectangle GetEssenceIconSourceRect(int essenceIdx)
     {
-        Dictionary<int, Vector3> centers = new();
-        int essenceIndex = 0;
-        for (int i = -1; i < 8; i++)
-        {
-            if (i is >= 2 and <= 4) continue;
-            float x = (float)Math.Cos(MathHelper.ToRadians(i * 30) - MathHelper.ToRadians(7.5f * (i < 2 ? -1 : 1))) *
-                      (agrometerFrame.Width / 2.35f) * GetAgrometerScale().X;
-            float y = (float)Math.Sin(MathHelper.ToRadians(i * 30) - MathHelper.ToRadians(7.5f * (i < 2 ? -1 : 1))) *
-                      (agrometerFrame.Height / 2.35f) * GetAgrometerScale().Y;
-            float z = GetEssenceContainerRadius() * 0.1f;
-            Vector3 position = new Vector3(GetAgrometerCenter().X + x, GetAgrometerCenter().Y + y, z);
-            centers.Add(essenceIndex, position);
-            essenceIndex++;
-        }
-
-        return centers;
+        return new Rectangle(
+            x: essenceIdx * 32,
+            y: 0,
+            width: 32,
+            height: 32
+        );
     }
 
     public bool IsPointInCircle(Vector2 point, Vector2 center, float radius)
