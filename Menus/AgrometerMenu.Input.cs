@@ -16,6 +16,15 @@ public partial class AgrometerMenu
         {
             int direction = UpArrow.bounds.Contains(x, y) ? -1 : 1;
             ScrollItem(direction);
+            Game1.playSound("drumkit6");
+        }
+        
+        Vector2 rotateArrowPosition = GetRotateArrowPosition() - (RotateArrowSourceRect.Size.ToVector2() / 2f) * GetAgrometerScale() * 1.5f;
+        Vector2 rotateArrowSize = RotateArrowSourceRect.Size.ToVector2() * GetAgrometerScale() * 1.5f;
+        var rotateArrowRect = new Rectangle((int)rotateArrowPosition.X, (int)rotateArrowPosition.Y, (int)rotateArrowSize.X, (int)rotateArrowSize.Y);
+        if (rotateArrowRect.Contains(x, y))
+        {
+            rotateMenu();
         }
     }
     
@@ -62,10 +71,9 @@ public partial class AgrometerMenu
             }
         }
 
-        Vector2 extractAllPosition = GetExtractAllPosition();
-        var extractAllRect = new Rectangle((int)(extractAllPosition.X - 32 * GetItemSlotScale(2).X * 0.75f),
-            (int)(extractAllPosition.Y - 32 * GetItemSlotScale(2).X * 0.75f), (int)(64 * GetItemSlotScale(2).X * 0.75f),
-            (int)(64 * GetItemSlotScale(2).X * 0.75f));
+        Vector2 extractAllPosition = GetExtractAllPosition() - (ExtractAllButton.Bounds.Size.ToVector2() / 2f) * GetAgrometerScale() * 1.5f;
+        Vector2 extractAllSize = ExtractAllButton.Bounds.Size.ToVector2() * GetAgrometerScale() * 1.5f;
+        var extractAllRect = new Rectangle((int)extractAllPosition.X, (int)extractAllPosition.Y, (int)extractAllSize.X, (int)extractAllSize.Y);
         if (extractAllRect.Contains(x, y))
         {
             foundDrainedEssence = true;
@@ -87,9 +95,7 @@ public partial class AgrometerMenu
 
         if (key is Keys.RightControl)
         {
-            targetMenuRotation += 180f;
-            rotationAcceleration = -5f;
-            isExtractMode = !isExtractMode;
+            rotateMenu();
         }
         
         // TODO: Gamepad support.
@@ -99,6 +105,7 @@ public partial class AgrometerMenu
     {
         int scrollDirection = direction > 0 ? -1 : 1;
         ScrollItem(scrollDirection);
+        Game1.playSound("drumkit6");
     }
 
     public override void performHoverAction(int x, int y)
@@ -114,6 +121,15 @@ public partial class AgrometerMenu
             }
             else targetEssenceScale[i] = 1f;
         }
+
+        Vector2 rotateArrowPosition = GetRotateArrowPosition() - (RotateArrowSourceRect.Size.ToVector2() / 2f) * GetAgrometerScale() * 1.5f;
+        Vector2 rotateArrowSize = RotateArrowSourceRect.Size.ToVector2() * GetAgrometerScale() * 1.5f;
+        var rotateArrowRect = new Rectangle((int)rotateArrowPosition.X, (int)rotateArrowPosition.Y, (int)rotateArrowSize.X, (int)rotateArrowSize.Y);
+        if (rotateArrowRect.Contains(x, y))
+        {
+            targetRotateArrowScale = 1.15f;
+        }
+        else targetRotateArrowScale = 1f;
     }
     
     public override void receiveGamePadButton(Buttons button)

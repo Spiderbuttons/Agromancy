@@ -171,6 +171,11 @@ namespace Agromancy
             {
                 e.LoadFromModFile<Texture2D>("assets/arrows.png", AssetLoadPriority.Exclusive);
             }
+            
+            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AllButton"))
+            {
+                e.LoadFromModFile<Texture2D>("assets/allButton.png", AssetLoadPriority.Exclusive);
+            }
 
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/Objects"))
             {

@@ -59,6 +59,19 @@ public partial class AgrometerMenu
         drawEssenceIcons(b);
 
         drawArrows(b);
+        
+        for (int i = 0; i < 6; i++)
+        {
+            Vector2 center = GetEssenceCenter(i);
+            float radius = GetEssenceContainerRadius() * 0.1f;
+            float distanceFromMouse = Vector2.Distance(new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()), center);
+            if (distanceFromMouse < radius)
+            {
+                string[] tooltip = GetEssenceTooltip(i).Split(':');
+                drawHoverText(b, tooltip[1], Game1.dialogueFont, boldTitleText: tooltip[0]);
+                break;
+            }
+        }
 
         drawMouse(b);
     }
@@ -79,20 +92,16 @@ public partial class AgrometerMenu
     
     private void drawExtractAllButton(SpriteBatch b)
     {
-        Texture2D itemSlotTexture = Game1.uncoloredMenuTexture;
-        Rectangle itemSlotSourceRect = Game1.getSourceRectForStandardTileSheet(Game1.menuTexture, 16);
-        itemSlotSourceRect.Width -= 4;
-        itemSlotSourceRect.Height -= 4;
         Vector2 slotPosition = GetExtractAllPosition();
 
         b.Draw(
-            texture: itemSlotTexture,
+            texture: ExtractAllButton,
             position: slotPosition,
-            sourceRectangle: itemSlotSourceRect,
-            color: new Color(88, 57, 40),
-            rotation: 0f,
-            origin: new Vector2(itemSlotSourceRect.Width / 2f, itemSlotSourceRect.Height / 2f),
-            scale: GetItemSlotScale(2) * 0.75f,
+            sourceRectangle: new Rectangle(0,0, 22, 15),
+            color: Color.Lerp(Color.White,new Color(88, 57, 40), 0.75f),
+            rotation: currentMenuRotation / 360f * MathHelper.TwoPi,
+            origin: new Vector2(ExtractAllButton.Width / 2f, ExtractAllButton.Height / 2f),
+            scale: GetAgrometerScale() * 1.5f,
             effects: SpriteEffects.None,
             layerDepth: 0.5f);
     }
@@ -212,6 +221,18 @@ public partial class AgrometerMenu
     {
         UpArrow.draw(b, GetAgrometerMainColour() * 3.5f, layerDepth: 0.9f);
         DownArrow.draw(b, GetAgrometerMainColour() * 3.5f, layerDepth: 0.9f);
+        
+        b.Draw(
+            texture: ArrowsTexture,
+            position: GetRotateArrowPosition(),
+            sourceRectangle: new Rectangle(47, 2, 19, 7),
+            color: Color.Lerp(Color.White,new Color(88, 57, 40), 0.75f),
+            rotation: currentMenuRotation / 360f * MathHelper.TwoPi,
+            origin: new Vector2(19 / 2f, 7 / 2f),
+            scale: GetAgrometerScale() * 1.5f * currentRotateArrowScale,
+            effects: SpriteEffects.None,
+            layerDepth: 0.9f
+        );
     }
 
     private void drawCurrentCropEssences(SpriteBatch b)

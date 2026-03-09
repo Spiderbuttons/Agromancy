@@ -45,8 +45,6 @@ public partial class AgrometerMenu
     private Item? GetEssenceVial()
     {
         return Agrometer.attachments.Count > 0 ? Agrometer.attachments[0] : null;
-        // var inventory = Game1.player.Items;
-        // return inventory.FirstOrDefault(item => item.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_EssenceVial"));
     }
 
     private Vector2 GetEssenceVialSlotPosition()
@@ -56,7 +54,7 @@ public partial class AgrometerMenu
     
     private Vector2 GetExtractAllPosition()
     {
-        return GetPointOnCircle(GetAgrometerCenter(), (agrometerFrame.Height / 2.225f) * GetAgrometerScale().Y, -90 + currentMenuRotation);
+        return GetPointOnCircle(GetAgrometerCenter(), (agrometerFrame.Height / 2.215f) * GetAgrometerScale().Y, -90 + currentMenuRotation);
     }
 
     public Item? GetCurrentlySelectedCrop()
@@ -108,6 +106,25 @@ public partial class AgrometerMenu
             width: 32,
             height: 32
         );
+    }
+
+    private string GetEssenceTooltip(int essenceIdx)
+    {
+        return essenceIdx switch {
+            0 => "Yield Essence:Chance for extra crops\nwhen harvesting.",
+            1 => "Quality Essence:More quality essence leads\nto higher quality crops.",
+            2 => "Growth Essence:Speeds up the rate at which\ncrops grow.",
+            3 => "Giant Essence:Increases the odds of becoming\na giant crop, if possible.",
+            4 => "Retention Essence:Higher retention crops use\nless water.",
+            5 => "Seed Essence:Extra seeds might be dug up\nwhen harvesting.",
+            _ => ""
+        };
+    }
+
+    private Vector2 GetRotateArrowPosition()
+    {
+        return GetPointOnCircle(GetAgrometerCenter(), (agrometerFrame.Height / 1.85f) * GetAgrometerScale().Y,
+            currentMenuRotation + 90);
     }
 
     public bool IsPointInCircle(Vector2 point, Vector2 center, float radius)

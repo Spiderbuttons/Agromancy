@@ -22,6 +22,9 @@ public partial class AgrometerMenu
     private float[] targetEssenceScale = new float[6];
     private float[] currentEssenceScale = new float[6];
     
+    private float targetRotateArrowScale = 0f;
+    private float currentRotateArrowScale = 0f;
+    
     private int suckedDryNoiseCooldown = 0;
     private bool alreadyCreatedSuckedDryParticles = false;
 
@@ -135,6 +138,14 @@ public partial class AgrometerMenu
 
     private void updateArrows()
     {
+        if (targetRotateArrowScale > currentRotateArrowScale)
+        {
+            currentRotateArrowScale = MathHelper.SmoothStep(currentRotateArrowScale, targetRotateArrowScale, 0.25f);
+        } else
+        {
+            currentRotateArrowScale = MathHelper.Lerp(currentRotateArrowScale, targetRotateArrowScale, 0.1f);
+        }
+        
         if (!shouldUpdateArrows) return;
         
         Rectangle upArrowLocation = new Rectangle(

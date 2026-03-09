@@ -48,12 +48,16 @@ public partial class AgrometerMenu : IClickableMenu
     private Rectangle DownArrowSourceRect => new(11, 0, 11, 12);
     private Rectangle LeftArrowSourceRect => new(22, 0, 12, 12);
     private Rectangle RightArrowSourceRect => new(34, 0, 12, 12);
+    private Rectangle RotateArrowSourceRect => new(47, 2, 19, 7);
 
     public ClickableTextureComponent UpArrow;
     public ClickableTextureComponent DownArrow;
+    public ClickableTextureComponent RotateArrow;
     
     private Texture2D EssenceIconSheet => Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/EssenceIcons");
     private List<ClickableTextureComponent> EssenceIcons = new();
+    
+    private Texture2D ExtractAllButton => Game1.content.Load<Texture2D>($"{Agromancy.UNIQUE_ID}/AllButton");
 
     Dictionary<Item, int> agromancyCrops => GetItemsWithAgromancyData();
 
@@ -99,6 +103,14 @@ public partial class AgrometerMenu : IClickableMenu
             (int)(DownArrowSourceRect.Width * GetAgrometerScale().X * 2f),
             (int)(DownArrowSourceRect.Height * GetAgrometerScale().Y * 2f)
         );
+        
+        Vector2 rotateArrowposition = GetPointOnCircle(GetAgrometerCenter(), (agrometerFrame.Height / 1.85f) * GetAgrometerScale().Y, 90);
+        Rectangle rotateArrowlocation = new Rectangle(
+            (int)(rotateArrowposition.X - (RotateArrowSourceRect.Width * GetAgrometerScale().X) / 2f),
+            (int)(rotateArrowposition.Y - (RotateArrowSourceRect.Height * GetAgrometerScale().Y) / 2f),
+            (int)(RotateArrowSourceRect.Width * GetAgrometerScale().X),
+            (int)(RotateArrowSourceRect.Height * GetAgrometerScale().Y)
+        );
 
         UpArrow = new ClickableTextureComponent(
             name: "UpArrow",
@@ -116,6 +128,21 @@ public partial class AgrometerMenu : IClickableMenu
             texture: ArrowsTexture,
             sourceRect: DownArrowSourceRect,
             scale: GetAgrometerScale().X * 2f);
+        RotateArrow = new ClickableTextureComponent(
+            name: "RotateArrow",
+            bounds: rotateArrowlocation,
+            label: null,
+            hoverText: "Rotate Menu",
+            texture: ArrowsTexture,
+            sourceRect: RotateArrowSourceRect,
+            scale: GetAgrometerScale().X * 2f);
+    }
+
+    private void rotateMenu(float degrees = 180f, float startingAccel = -5f)
+    {
+        targetMenuRotation += degrees;
+        rotationAcceleration = startingAccel;
+        isExtractMode = !isExtractMode;
     }
 
     public override void populateClickableComponentList()
