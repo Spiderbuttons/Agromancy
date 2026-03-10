@@ -66,8 +66,34 @@ public class CropManager
     public static Item ModifyHarvestedCrop(Item harvest, Crop crop)
     {
         Log.Alert("Modifying crop harvest.");
+        Random rng = new Random((int)Game1.stats.DaysPlayed);
         CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(GetCropReferenceByCropId($"(O){crop.indexOfHarvest.Value}")) ?? EssenceCalculator.EmptyEssences;
-        essences.Mutate(range: 5, positiveOnly: true); // TODO: Config option to allow negative mutations.
+        // essences.Mutate(range: 5, positiveOnly: true); // TODO: Config option to allow negative mutations.
+        
+        /* Quality */
+        int qual = essences.QualityEssence;
+        int qualityToRaiseTo = 1;
+        while (qual > 0)
+        {
+            Log.Debug($"Applying quality essence. Current essence: {qual}, percent chance to raise to next quality ({qualityToRaiseTo}): {(qual / 85f) * 100}%");
+            float percentChance = qual / 85f; // 255 / 3 = 85
+            if (rng.NextDouble() < percentChance)
+            {
+                Log.Debug($"Raising quality to {qualityToRaiseTo}.");
+                harvest.Quality = Math.Max(harvest.Quality, qualityToRaiseTo);
+            }
+            qual -= 85;
+            qualityToRaiseTo++;
+        }
+        harvest.FixQuality();
+        essences.QualityEssence = harvest.Quality switch 
+        {
+            0 => Math.Max(essences.QualityEssence, (byte)0),
+            1 => Math.Max(essences.QualityEssence, (byte)85),
+            2 => Math.Max(essences.QualityEssence, (byte)170),
+            4 => Math.Max(essences.QualityEssence, (byte)255),
+            _ => essences.QualityEssence
+        };
         
         return (Item)harvest.ApplyEssences(essences);
     }
