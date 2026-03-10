@@ -270,15 +270,6 @@ namespace Agromancy
             if (!Context.IsWorldReady)
                 return;
 
-            // if (e.Button.IsUseToolButton())
-            // {
-            //     Log.Warn("Pressed use tool button.");
-            //     if (Game1.player.ActiveObject is not null && Game1.player.ActiveObject.QualifiedItemId.Equals($"(O){UNIQUE_ID}_Agrometer"))
-            //     {
-            //         Game1.activeClickableMenu = new AgrometerMenu();
-            //     }
-            // }
-
             if (e.Button is SButton.F8)
             {
                 Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());

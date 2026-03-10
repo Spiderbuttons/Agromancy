@@ -35,7 +35,14 @@ public partial class AgrometerMenu
             if (item is not null && !item.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_EssenceVial") &&
                 item.modData.ContainsKey(Agromancy.Manifest.UniqueID))
             {
-                items.Add(item, index);
+                if (isExtractMode && CropManager.GetCropReferenceByCropId(item.QualifiedItemId) is not null)
+                {
+                    items.Add(item, index);
+                }
+                else if (!isExtractMode && CropManager.GetCropReferenceBySeedId(item.QualifiedItemId) is not null)
+                {
+                    items.Add(item, index);
+                }
             }
         }
 

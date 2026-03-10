@@ -12,7 +12,7 @@ public partial class AgrometerMenu
         // base.receiveLeftClick(x, y, playSound);
         if (!shouldAllowClick) return;
 
-        if (UpArrow.bounds.Contains(x, y) || DownArrow.bounds.Contains(x, y))
+        if (agromancyCrops.Count > 1 && (UpArrow.bounds.Contains(x, y) || DownArrow.bounds.Contains(x, y)))
         {
             int direction = UpArrow.bounds.Contains(x, y) ? -1 : 1;
             ScrollItem(direction);
@@ -103,6 +103,8 @@ public partial class AgrometerMenu
 
     public override void receiveScrollWheelAction(int direction)
     {
+        if (agromancyCrops.Count <= 1) return;
+        
         int scrollDirection = direction > 0 ? -1 : 1;
         ScrollItem(scrollDirection);
         Game1.playSound("drumkit6");
