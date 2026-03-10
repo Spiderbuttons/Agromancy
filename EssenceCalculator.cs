@@ -205,10 +205,10 @@ public static class EssenceCalculator
         totalGrowthDays += cropRef.CropData.RegrowDays;
         // The intent is to make slower growing crops have less harvest essence anyway, so regrowable crops should have a buff.
         
-        float percentageOfMonthToGrow = totalGrowthDays / 28f;
+        float percentageOfMonthToGrow = (totalGrowthDays / 28f) * 4f;
         var harvestEssence = (byte)(255 * percentageOfMonthToGrow);
         
-        return harvestEssence;
+        return (byte)(255 - harvestEssence);
     }
     
     public static byte DefaultGiantEssence(AgroCropReference cropRef)
