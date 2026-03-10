@@ -12,6 +12,8 @@ namespace Agromancy.Menus;
 
 public partial class AgrometerMenu
 {
+    private bool shouldDrawVialTooltip = false;
+    
     public override void draw(SpriteBatch b)
     {
         b.End();
@@ -68,9 +70,14 @@ public partial class AgrometerMenu
             if (distanceFromMouse < radius)
             {
                 string[] tooltip = GetEssenceTooltip(i).Split(':');
-                drawHoverText(b, tooltip[1], Game1.dialogueFont, boldTitleText: tooltip[0]);
+                drawHoverText(b, tooltip[1], Game1.smallFont, boldTitleText: tooltip[0]);
                 break;
             }
+        }
+
+        if (shouldDrawVialTooltip && EssenceVial is not null)
+        {
+            drawHoverText(b, EssenceVial.getDescription(), Game1.smallFont, hoveredItem: EssenceVial, boldTitleText: EssenceVial.DisplayName);
         }
 
         drawMouse(b);

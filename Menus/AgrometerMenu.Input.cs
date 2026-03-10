@@ -132,6 +132,15 @@ public partial class AgrometerMenu
             targetRotateArrowScale = 1.15f;
         }
         else targetRotateArrowScale = 1f;
+        
+        Vector2 essenceVialPosition = GetEssenceVialSlotPosition() - new Vector2(8, 8) * 4f * GetItemSlotScale(2) * 0.6f * 0.75f;
+        Vector2 essenceVialSize = new Vector2(16, 16) * 4f * GetItemSlotScale(2) * 0.6f * 0.75f;
+        var essenceVialRect = new Rectangle((int)essenceVialPosition.X, (int)essenceVialPosition.Y, (int)essenceVialSize.X, (int)essenceVialSize.Y);
+        if (essenceVialRect.Contains(x, y))
+        {
+            shouldDrawVialTooltip = true;
+        }
+        else shouldDrawVialTooltip = false;
     }
     
     public override void receiveGamePadButton(Buttons button)
