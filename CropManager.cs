@@ -183,6 +183,7 @@ public class CropManager
             Log.Error("Adding Crop Essences to " + item.DisplayName);
             
             CropEssences newCropEssences = EssenceCalculator.DefaultEssences(cropRef) ?? EssenceCalculator.EmptyEssences;
+            Log.Info(newCropEssences.ToString());
             item.modData[Agromancy.Manifest.UniqueID] = JsonConvert.SerializeObject(newCropEssences);
         }
     }
