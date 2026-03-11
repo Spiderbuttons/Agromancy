@@ -12,16 +12,28 @@ public class HoeDirtPatches
 {
     [HarmonyPostfix]
     [HarmonyPatch(nameof(HoeDirt.plant))]
-    public static void plant_Postfix(HoeDirt __instance, Farmer who, bool __result)
+    public static void plant_Postfix(HoeDirt __instance, Farmer who, bool isFertilizer, bool __result)
     {
-        if (__result)
+        if (__result && !isFertilizer)
         {
             Log.Debug("Crop planted, adding Agromancy essences.");
             
-            CropManager.EnsureLookups();
             CropEssences essences = CropManager.GrabEssences(who.ActiveObject) ?? EssenceCalculator.DefaultEssences(CropManager.GetCropReferenceBySeedId(who.ActiveObject.QualifiedItemId)) ?? EssenceCalculator.EmptyEssences;
             
             __instance.crop.modData[Agromancy.Manifest.UniqueID] = JsonConvert.SerializeObject(essences);
         }
+    }
+    
+    [HarmonyPostfix]
+    [HarmonyPatch(nameof(HoeDirt.GetFertilizerWaterRetentionChance))]
+    public static void GetFertilizerWaterRetentionChance_Postfix(HoeDirt __instance, ref float __result)
+    {
+        if (__instance.crop?.indexOfHarvest.Value is null) return;
+        
+        CropEssences essences = CropManager.GrabEssences(__instance.crop) ?? EssenceCalculator.DefaultEssences(CropManager.GetCropReferenceBySeedId(__instance.crop.indexOfHarvest.Value)) ?? EssenceCalculator.EmptyEssences;
+        
+        Log.Debug($"Checking water use for hoedirt on tile {__instance.Tile}. Initial result: {__result}, adding {essences.WaterEssence / 255f} from WaterEssence.");
+        
+        __result += essences.WaterEssence / 255f;
     }
 }

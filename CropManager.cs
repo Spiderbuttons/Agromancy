@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Agromancy.Helpers;
 using Agromancy.Models;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Extensions;
 using StardewValley.GameData.Crops;
 using StardewValley.GameData.GiantCrops;
 using StardewValley.TerrainFeatures;
@@ -67,6 +69,7 @@ public class CropManager
     {
         Log.Alert("Modifying crop harvest.");
         Random rng = new Random((int)Game1.stats.DaysPlayed);
+        Point pos = crop.tilePosition.ToPoint();
         CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(GetCropReferenceByCropId($"(O){crop.indexOfHarvest.Value}")) ?? EssenceCalculator.EmptyEssences;
         // essences.Mutate(range: 5, positiveOnly: true); // TODO: Config option to allow negative mutations.
         
@@ -95,6 +98,28 @@ public class CropManager
             _ => essences.QualityEssence
         };
         
+        /* Water Retention */
+        float retention = crop.Dirt.GetFertilizerWaterRetentionChance();
+        byte waterEssence = Math.Clamp((byte)((retention / 4f) * 255), (byte)0, (byte)255);
+        essences.WaterEssence = Math.Max(essences.WaterEssence, waterEssence);
+        Log.Debug($"Calculated water essence: {waterEssence}, retention chance: {retention}. Setting crop's water essence to {essences.WaterEssence}.");
+        
+        /* Yield */
+        /* /!\ This has to be done after quality, since the generated crops need to share the quality and essences after everything's been applied. /!\ */
+        int startingYield = harvest.Stack;
+        float percentToBump = essences.YieldEssence / 255f;
+        int extraYield = 0;
+        while (extraYield < EssenceCalculator.MAX_CROP_YIELD && rng.NextDouble() < percentToBump)
+        {
+            extraYield++;
+            for (int i = 0; i < startingYield; i++)
+            {
+                createObjectDebrisWithEssence(harvest.QualifiedItemId, pos.X, pos.Y, essences, location: crop.currentLocation, itemQuality: harvest.Quality, velocityMultiplyer: 1.1f);
+            }
+
+            Log.Debug($"Bumping crop yield by 1. Current extra yield: {extraYield}");
+        }
+        
         return (Item)harvest.ApplyEssences(essences);
     }
     
@@ -118,6 +143,29 @@ public class CropManager
             return cropRef;
 
         return null;
+    }
+    
+    public static void createObjectDebrisWithEssence(string id, int xTile, int yTile, CropEssences essences, int groundLevel = -1, int itemQuality = 0, float velocityMultiplyer = 1f, GameLocation? location = null)
+    {
+        if (location == null)
+        {
+            location = Game1.currentLocation;
+        }
+        Debris d = new Debris(id, new Vector2(xTile * 64 + 32, yTile * 64 + 32), Game1.player.getStandingPosition())
+        {
+            itemQuality = itemQuality,
+            item = ItemRegistry.Create(id, quality: itemQuality).ApplyEssences(essences) as Item
+        };
+        foreach (Chunk chunk in d.Chunks)
+        {
+            chunk.xVelocity.Value *= velocityMultiplyer;
+            chunk.yVelocity.Value *= velocityMultiplyer;
+        }
+        if (groundLevel != -1)
+        {
+            d.chunkFinalYLevel = groundLevel;
+        }
+        location.debris.Add(d);
     }
 
     private void OnInventoryChanged(object? sender, InventoryChangedEventArgs e)
