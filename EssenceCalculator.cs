@@ -182,7 +182,10 @@ public static class EssenceCalculator
     {
         float minimumYieldByData = cropRef.CropData.HarvestMinStack;
         float extraYieldChance = (float)cropRef.CropData.ExtraHarvestChance;
-        byte yieldEssence = (byte)(255 * extraYieldChance + minimumYieldByData / MAX_CROP_YIELD * 255);
+
+        if (minimumYieldByData is 1 && extraYieldChance is 0f) return 0;
+        
+        byte yieldEssence = (byte)Math.Clamp(255 * extraYieldChance + minimumYieldByData / 12 * 255, 0, 255);
         return yieldEssence;
     }
     
@@ -204,6 +207,8 @@ public static class EssenceCalculator
         // RegrowDays is -1 for non-regrowable crops, but I actually think that works in our favour here.
         totalGrowthDays += cropRef.CropData.RegrowDays;
         // The intent is to make slower growing crops have less harvest essence anyway, so regrowable crops should have a buff.
+        
+        // TODO: Fix the above after I changed it so that it becomes 255 - essence, completely contradicting my comment lol
         
         float percentageOfMonthToGrow = (totalGrowthDays / 28f) * 4f;
         var harvestEssence = (byte)(255 * percentageOfMonthToGrow);
