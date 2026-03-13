@@ -126,13 +126,13 @@ public class CropManager
     public static AgroCropReference? GetCropReferenceBySeedId(string seedId)
     {
         EnsureLookups();
-        return SeedIdToCropDataLookup.GetValueOrDefault(seedId);
+        return SeedIdToCropDataLookup.GetValueOrDefault(ItemRegistry.QualifyItemId(seedId));
     }
     
     public static AgroCropReference? GetCropReferenceByCropId(string cropId)
     {
         EnsureLookups();
-        return CropIdToCropDataLookup.GetValueOrDefault(cropId);
+        return CropIdToCropDataLookup.GetValueOrDefault(ItemRegistry.QualifyItemId(cropId));
     }
 
     public static AgroCropReference? GetCropReference(string itemId)
