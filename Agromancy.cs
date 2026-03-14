@@ -19,6 +19,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using StardewValley.GameData.Buffs;
 using StardewValley.GameData.Crops;
+using StardewValley.GameData.GiantCrops;
 using StardewValley.GameData.Objects;
 using StardewValley.GameData.Tools;
 using StardewValley.Mods;
@@ -106,6 +107,15 @@ namespace Agromancy
                 {
                     var data = asset.AsDictionary<string, CropData>().Data;
                     data["472"].HarvestMinQuality = 2;
+                });
+            }
+
+            if (e.NameWithoutLocale.IsEquivalentTo("Data/GiantCrops"))
+            {
+                e.Edit(asset =>
+                {
+                    var data = asset.AsDictionary<string, GiantCropData>().Data;
+                    data["Melon"].Chance = 0.9f;
                 });
             }
 
@@ -299,29 +309,46 @@ namespace Agromancy
             if (e.Button is SButton.F3)
             {
                 var clickedTile = e.Cursor.Tile;
-                if (Game1.currentLocation.terrainFeatures.TryGetValue(clickedTile, out var terrainFeature))
+                if (Game1.currentLocation.resourceClumps.FirstOrDefault(c => c.occupiesTile((int)clickedTile.X, (int)clickedTile.Y)) is not null)
                 {
-                    if (terrainFeature is not HoeDirt feature) return;
-                    CropEssences? hoeDirtEssences = CropManager.GrabEssences(feature.crop);
+                    var clump = Game1.currentLocation.resourceClumps.FirstOrDefault(c => c.occupiesTile((int)clickedTile.X, (int)clickedTile.Y));
+                    if (clump is null) return;
+                    CropEssences? clumpEssences = CropManager.GrabEssences(clump);
                     Log.Error("------------------------");
-                    if (hoeDirtEssences is null)
+                    if (clumpEssences is null)
                     {
-                        Log.Warn("No Agromancy data found on this crop.");
+                        Log.Warn("No Agromancy data found on this resource clump.");
                         return;
                     }
-
-                    Log.Info("Agromancy data found on this crop:");
-
+                    Log.Info("Agromancy data found on this resource clump:");
                     foreach (var prop in typeof(CropEssences).GetProperties())
                     {
-                        if (prop.PropertyType == typeof(byte[]))
-                        {
-                            byte[] arr = (byte[])prop.GetValue(hoeDirtEssences)!;
-                            Log.Info($"{prop.Name}: [{string.Join(", ", arr)}]");
-                        }
-                        else Log.Info($"{prop.Name}: {prop.GetValue(hoeDirtEssences)}");
+                        Log.Info($"{prop.Name}: {prop.GetValue(clumpEssences)}");
                     }
                 }
+                // else if (Game1.currentLocation.terrainFeatures.TryGetValue(clickedTile, out var terrainFeature))
+                // {
+                //     if (terrainFeature is not HoeDirt feature) return;
+                //     CropEssences? hoeDirtEssences = CropManager.GrabEssences(feature.crop);
+                //     Log.Error("------------------------");
+                //     if (hoeDirtEssences is null)
+                //     {
+                //         Log.Warn("No Agromancy data found on this crop.");
+                //         return;
+                //     }
+                //
+                //     Log.Info("Agromancy data found on this crop:");
+                //
+                //     foreach (var prop in typeof(CropEssences).GetProperties())
+                //     {
+                //         if (prop.PropertyType == typeof(byte[]))
+                //         {
+                //             byte[] arr = (byte[])prop.GetValue(hoeDirtEssences)!;
+                //             Log.Info($"{prop.Name}: [{string.Join(", ", arr)}]");
+                //         }
+                //         else Log.Info($"{prop.Name}: {prop.GetValue(hoeDirtEssences)}");
+                //     }
+                // }
                 else if (Game1.player.ActiveObject is not null)
                 {
                     bool hasAgroData = Game1.player.ActiveObject.modData.ContainsKey(Manifest.UniqueID);

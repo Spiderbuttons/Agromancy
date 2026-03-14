@@ -65,6 +65,17 @@ public class CropManager
         }
     }
 
+    public static Item ModifyGiantCropDrop(Item drop, GiantCrop crop)
+    {
+        if (!GiantCrop.TryGetData(crop.Id, out var data)) return drop;
+        
+        CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(GetCropReferenceByCropId(data.FromItemId)) ?? EssenceCalculator.EmptyEssences;
+        essences.GiantEssence = (byte)Math.Min(255, essences.GiantEssence * 1.2f);
+        drop.ApplyEssences(essences);
+        
+        return drop;
+    }
+
     public static Item ModifyHarvestedCrop(Item harvest, Crop crop)
     {
         Log.Alert("Modifying crop harvest.");
