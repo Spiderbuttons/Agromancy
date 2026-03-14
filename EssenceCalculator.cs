@@ -15,14 +15,6 @@ public static class EssenceCalculator
     public const int WATER_INDEX = 4;
     public const int SEED_INDEX = 5;
     
-    // These won't be used for most essence calculations but will be used as limiters when the essences are "applied" to crops being harvested/watered/etc.
-    public const int MAX_CROP_YIELD = 3;
-    public const int MAX_SEED_YIELD = 4;
-    public const float MAX_EXTRA_GROWTH_CHANCE = 1f;
-    public const float MAX_QUALITY_BUMP_CHANCE = 1f;
-    public const float MAX_GIANT_CHANCE = 1f;
-    public const float MIN_WATER_CHANCE = 0f;
-    
     public static CropEssences EmptyEssences => new CropEssences
     {
         YieldEssence = 0,

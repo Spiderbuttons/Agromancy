@@ -17,9 +17,21 @@ namespace Agromancy;
 
 public class CropManager
 {
+    public const int MAX_CROP_YIELD = 3;
+    public const int MAX_SEED_YIELD = 4;
+    public const int MAX_EXTRA_GROWTHS = 1;
+    
     public static Dictionary<string, AgroCropReference> SeedIdToCropDataLookup { get; set; } = new();
     public static Dictionary<string, AgroCropReference> CropIdToCropDataLookup { get; set; } = new();
-
+    
+    public CropManager()
+    {
+        FillLookups();
+        Agromancy.ModHelper.Events.Player.InventoryChanged += OnInventoryChanged;
+        Agromancy.ModHelper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
+        Agromancy.ModHelper.Events.GameLoop.DayStarted += OnDayStarted;
+    }
+    
     public static void EnsureLookups()
     {
         if (!SeedIdToCropDataLookup.Any() || !CropIdToCropDataLookup.Any())
@@ -39,13 +51,6 @@ public class CropManager
             SeedIdToCropDataLookup[seedId] = cropRef;
             CropIdToCropDataLookup[cropId] = cropRef;
         }
-    }
-    
-    public CropManager()
-    {
-        FillLookups();
-        Agromancy.ModHelper.Events.Player.InventoryChanged += OnInventoryChanged;
-        Agromancy.ModHelper.Events.Content.AssetsInvalidated += OnAssetsInvalidated;
     }
 
     public static CropEssences? GrabEssences(IHaveModData essenceSource)
@@ -115,12 +120,15 @@ public class CropManager
         essences.WaterEssence = Math.Max(essences.WaterEssence, waterEssence);
         Log.Debug($"Calculated water essence: {waterEssence}, retention chance: {retention}. Setting crop's water essence to {essences.WaterEssence}.");
         
+        /* Giant */
+        // (See CropPatches for relevant GiantCrop code.)
+        
         /* Yield */
         /* /!\ This has to be done after quality, since the generated crops need to share the quality and essences after everything's been applied. /!\ */
         int startingYield = harvest.Stack;
         float percentToBump = essences.YieldEssence / 255f;
         int extraYield = 0;
-        while (extraYield < EssenceCalculator.MAX_CROP_YIELD && rng.NextDouble() < percentToBump)
+        while (extraYield < MAX_CROP_YIELD && rng.NextDouble() < percentToBump)
         {
             extraYield++;
             for (int i = 0; i < startingYield; i++)
@@ -134,16 +142,16 @@ public class CropManager
         return (Item)harvest.ApplyEssences(essences);
     }
     
-    public static AgroCropReference? GetCropReferenceBySeedId(string seedId)
+    public static AgroCropReference? GetCropReferenceBySeedId(string? seedId)
     {
         EnsureLookups();
-        return SeedIdToCropDataLookup.GetValueOrDefault(ItemRegistry.QualifyItemId(seedId));
+        return seedId is null ? null : SeedIdToCropDataLookup.GetValueOrDefault(ItemRegistry.QualifyItemId(seedId));
     }
     
-    public static AgroCropReference? GetCropReferenceByCropId(string cropId)
+    public static AgroCropReference? GetCropReferenceByCropId(string? cropId)
     {
         EnsureLookups();
-        return CropIdToCropDataLookup.GetValueOrDefault(ItemRegistry.QualifyItemId(cropId));
+        return cropId is null ? null : CropIdToCropDataLookup.GetValueOrDefault(ItemRegistry.QualifyItemId(cropId));
     }
 
     public static AgroCropReference? GetCropReference(string itemId)
@@ -177,6 +185,27 @@ public class CropManager
             d.chunkFinalYLevel = groundLevel;
         }
         location.debris.Add(d);
+    }
+
+    private void OnDayStarted(object? sender, DayStartedEventArgs e)
+    {
+        Utility.ForEachCrop(crop =>
+        {
+            if (crop.indexOfHarvest.Value is null || crop.dead.Value || crop.fullyGrown.Value) return true;
+            
+            Random rng = Utility.CreateDaySaveRandom();
+            CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(GetCropReferenceByCropId(crop.indexOfHarvest.Value)) ?? EssenceCalculator.EmptyEssences;
+            float extraGrowthChance = EssenceCalculator.GetEssencePercent(essences, EssenceCalculator.GROWTH_INDEX);
+            int extraGrowths = 0;
+            while (extraGrowths < MAX_EXTRA_GROWTHS && rng.NextDouble() < extraGrowthChance)
+            {
+                crop.newDay(crop.Dirt.state.Value);
+                extraGrowths++;
+                Log.Debug($"Applying extra growth to crop at {crop.tilePosition}. Current phase: {crop.currentPhase}, extra growths applied: {extraGrowths}");
+            }
+            
+            return true;
+        });
     }
 
     private void OnInventoryChanged(object? sender, InventoryChangedEventArgs e)
