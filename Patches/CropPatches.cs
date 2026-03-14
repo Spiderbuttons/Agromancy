@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using Agromancy.Helpers;
 using Agromancy.Models;
@@ -162,37 +163,25 @@ public class CropPatches
     
     [HarmonyTranspiler]
     [HarmonyPatch(typeof(Crop), nameof(Crop.harvest))]
-    public static IEnumerable<CodeInstruction> harvest_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator il)
+    public static IEnumerable<CodeInstruction> harvest_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator il, MethodBase original)
     {
         var code = instructions.ToList();
         try
         {
             var matcher = new CodeMatcher(code, il);
-
+            
             matcher.MatchStartForward(
-                new CodeMatch(OpCodes.Callvirt, AccessTools.Method(typeof(Farmer), nameof(Farmer.addItemToInventoryBool)))
+                new CodeMatch(opc => opc.IsStloc() && opc.operand is LocalBuilder { LocalIndex: 16 })
             ).ThrowIfNotMatch($"Could not find proper entry point #1 for {nameof(harvest_Transpiler)}");
 
-            matcher.Advance(-1);
-
-            matcher.Insert(
-                new CodeInstruction(OpCodes.Ldarg_0),
-                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(CropManager), nameof(CropManager.ModifyHarvestedCrop)))
-            );
-
-            matcher.End();
+            var labels = matcher.Instruction.ExtractLabels();
             
-            matcher.MatchStartBackwards(
-                new CodeMatch(OpCodes.Callvirt, AccessTools.Method(typeof(Farmer), nameof(Farmer.addItemToInventoryBool)))
-            ).ThrowIfNotMatch($"Could not find proper entry point #2 for {nameof(harvest_Transpiler)}");
-
-            matcher.Advance(-1);
-
             matcher.Insert(
-                new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldarg_0).WithLabels(labels),
+                new CodeInstruction(OpCodes.Ldarg_S, 4),
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(CropManager), nameof(CropManager.ModifyHarvestedCrop)))
             );
-
+            
             return matcher.InstructionEnumeration();
         }
         catch (Exception ex)

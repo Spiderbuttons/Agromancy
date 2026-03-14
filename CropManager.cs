@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Characters;
 using StardewValley.Extensions;
 using StardewValley.GameData.Crops;
 using StardewValley.GameData.GiantCrops;
@@ -81,9 +82,10 @@ public class CropManager
         return drop;
     }
 
-    public static Item ModifyHarvestedCrop(Item harvest, Crop crop)
+    public static Item ModifyHarvestedCrop(Item harvest, Crop crop, JunimoHarvester? junimoHarvester = null)
     {
         Log.Alert("Modifying crop harvest.");
+        if (junimoHarvester is not null) Log.Alert("(Harvested by Junimo)");
         Random rng = new Random((int)Game1.stats.DaysPlayed);
         Point pos = crop.tilePosition.ToPoint();
         AgroCropReference? cropRef = GetCropReferenceByCropId($"(O){crop.indexOfHarvest.Value}");
@@ -137,7 +139,13 @@ public class CropManager
             extraYield++;
             for (int i = 0; i < startingYield; i++)
             {
-                createObjectDebrisWithEssence(harvest.QualifiedItemId, pos.X, pos.Y, essences, location: crop.currentLocation, itemQuality: harvest.Quality, velocityMultiplyer: 1.1f);
+                if (junimoHarvester is null) createObjectDebrisWithEssence(harvest.QualifiedItemId, pos.X, pos.Y, essences, location: crop.currentLocation, itemQuality: harvest.Quality, velocityMultiplyer: 1.1f);
+                else
+                {
+                    Item item = ItemRegistry.Create(harvest.QualifiedItemId, quality: harvest.Quality);
+                    item.ApplyEssences(essences);
+                    junimoHarvester.tryToAddItemToHut(item);
+                }
             }
 
             Log.Debug($"Bumping crop yield by 1. Current extra yield: {extraYield}");
@@ -149,7 +157,13 @@ public class CropManager
         while (droppedSeeds < MAX_SEED_YIELD && rng.NextDouble() < seedChance)
         {
             droppedSeeds++;
-            createObjectDebrisWithEssence(ItemRegistry.QualifyItemId(crop.isWildSeedCrop() ? crop.whichForageCrop.Value : crop.netSeedIndex.Value), pos.X, pos.Y, essences, location: crop.currentLocation, velocityMultiplyer: 1.1f);
+            if (junimoHarvester is null) createObjectDebrisWithEssence(ItemRegistry.QualifyItemId(crop.isWildSeedCrop() ? crop.whichForageCrop.Value : crop.netSeedIndex.Value), pos.X, pos.Y, essences, location: crop.currentLocation, velocityMultiplyer: 1.1f);
+            else
+            {
+                Item seedItem = ItemRegistry.Create(ItemRegistry.QualifyItemId(crop.isWildSeedCrop() ? crop.whichForageCrop.Value : crop.netSeedIndex.Value));
+                seedItem.ApplyEssences(essences);
+                junimoHarvester.tryToAddItemToHut(seedItem);
+            }
             Log.Debug($"Dropping an extra seed. Current extra seeds: {droppedSeeds}");
         }
         
