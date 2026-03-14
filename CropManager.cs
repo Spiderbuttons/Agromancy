@@ -18,8 +18,8 @@ namespace Agromancy;
 public class CropManager
 {
     public const int MAX_CROP_YIELD = 3;
-    public const int MAX_SEED_YIELD = 4;
-    public const int MAX_EXTRA_GROWTHS = 1;
+    public const int MAX_SEED_YIELD = 3;
+    public const int MAX_EXTRA_GROWTH_UPDATES = 1;
     
     public static Dictionary<string, AgroCropReference> SeedIdToCropDataLookup { get; set; } = new();
     public static Dictionary<string, AgroCropReference> CropIdToCropDataLookup { get; set; } = new();
@@ -86,7 +86,8 @@ public class CropManager
         Log.Alert("Modifying crop harvest.");
         Random rng = new Random((int)Game1.stats.DaysPlayed);
         Point pos = crop.tilePosition.ToPoint();
-        CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(GetCropReferenceByCropId($"(O){crop.indexOfHarvest.Value}")) ?? EssenceCalculator.EmptyEssences;
+        AgroCropReference? cropRef = GetCropReferenceByCropId($"(O){crop.indexOfHarvest.Value}");
+        CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(cropRef) ?? EssenceCalculator.EmptyEssences;
         // essences.Mutate(range: 5, positiveOnly: true); // TODO: Config option to allow negative mutations.
         
         /* Quality */
@@ -123,6 +124,9 @@ public class CropManager
         /* Giant */
         // (See CropPatches for relevant GiantCrop code.)
         
+        /* Growth */
+        // (See OnDayUpdated.)
+        
         /* Yield */
         /* /!\ This has to be done after quality, since the generated crops need to share the quality and essences after everything's been applied. /!\ */
         int startingYield = harvest.Stack;
@@ -137,6 +141,16 @@ public class CropManager
             }
 
             Log.Debug($"Bumping crop yield by 1. Current extra yield: {extraYield}");
+        }
+        
+        /* Seed */
+        float seedChance = essences.SeedEssence / 255f;
+        int droppedSeeds = 0;
+        while (droppedSeeds < MAX_SEED_YIELD && rng.NextDouble() < seedChance)
+        {
+            droppedSeeds++;
+            createObjectDebrisWithEssence(ItemRegistry.QualifyItemId(crop.isWildSeedCrop() ? crop.whichForageCrop.Value : crop.netSeedIndex.Value), pos.X, pos.Y, essences, location: crop.currentLocation, velocityMultiplyer: 1.1f);
+            Log.Debug($"Dropping an extra seed. Current extra seeds: {droppedSeeds}");
         }
         
         return (Item)harvest.ApplyEssences(essences);
@@ -197,7 +211,7 @@ public class CropManager
             CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(GetCropReferenceByCropId(crop.indexOfHarvest.Value)) ?? EssenceCalculator.EmptyEssences;
             float extraGrowthChance = EssenceCalculator.GetEssencePercent(essences, EssenceCalculator.GROWTH_INDEX);
             int extraGrowths = 0;
-            while (extraGrowths < MAX_EXTRA_GROWTHS && rng.NextDouble() < extraGrowthChance)
+            while (extraGrowths < MAX_EXTRA_GROWTH_UPDATES && rng.NextDouble() < extraGrowthChance)
             {
                 crop.newDay(crop.Dirt.state.Value);
                 extraGrowths++;
