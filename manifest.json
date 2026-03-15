@@ -8,6 +8,11 @@
     "Dependencies": [
         {
             "UniqueID": "Spiderbuttons.BETAS",
+            "IsRequired": false
+        },
+        {
+            "UniqueID": "spacechase0.SpaceCore",
+            "IsRequired": false
         }
     ],
     "UpdateKeys": []

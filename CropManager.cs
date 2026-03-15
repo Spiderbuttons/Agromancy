@@ -93,6 +93,10 @@ public class CropManager
         // essences.Mutate(range: 5, positiveOnly: true); // TODO: Config option to allow negative mutations.
         
         /* Quality */
+        
+        // We don't need to raise the quality on seeds, which may end up being the "harvest" here due to the SpaceCore compatibility I did.
+        if (GetCropReferenceBySeedId(harvest.QualifiedItemId) is not null) goto water;
+        
         int qual = essences.QualityEssence;
         int qualityToRaiseTo = 1;
         while (qual > 0)
@@ -118,6 +122,7 @@ public class CropManager
         };
         
         /* Water Retention */
+        water:
         float retention = crop.Dirt.GetFertilizerWaterRetentionChance();
         byte waterEssence = Math.Clamp((byte)((retention / 4f) * 255), (byte)0, (byte)255);
         essences.WaterEssence = Math.Max(essences.WaterEssence, waterEssence);

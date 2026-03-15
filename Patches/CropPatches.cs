@@ -163,7 +163,7 @@ public class CropPatches
     
     [HarmonyTranspiler]
     [HarmonyPatch(typeof(Crop), nameof(Crop.harvest))]
-    public static IEnumerable<CodeInstruction> harvest_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator il, MethodBase original)
+    public static IEnumerable<CodeInstruction> harvest_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator il)
     {
         var code = instructions.ToList();
         try
