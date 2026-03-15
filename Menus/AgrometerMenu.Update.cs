@@ -68,8 +68,11 @@ public partial class AgrometerMenu
                 Vector2 startPosition = GetAgrometerCenter();
                 Vector2 endPosition = GetAgrometerCenter() + new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * radius * GetAgrometerScale().X;
                 createParticle(startPosition, endPosition, Color.Lerp(Color.WhiteSmoke, GetEssenceColour(i % 6), 0.25f), GetAgrometerScale());
-                alreadyCreatedSuckedDryParticles = true;
             }
+
+            Game1.playSound("fairy_heal", out var cue);
+            cue.Pitch = 1.2f;
+            alreadyCreatedSuckedDryParticles = true;
         }
 
         if (timeSinceSuckingDry >= 4500f)
