@@ -105,7 +105,7 @@ public class ObjectPatches
             color: Utility.GetPrismaticColor() * 0.85f,
             rotation: 0f,
             origin: new Vector2(8f, 16f),
-            scale: __instance.scale.Y > 1f ? __instance.getScale() : new Vector2(2f * scaleSize, MathHelper.Lerp(0f, 2f, 0.5f) * scaleSize),
+            scale: __instance.scale.Y > 1f ? __instance.getScale() : new Vector2(2f * scaleSize, MathHelper.Lerp(0f, 2f, fillPercentage) * scaleSize),
             effects: __instance.Flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None,
             layerDepth: layerDepth - 0.0000001f
             );
