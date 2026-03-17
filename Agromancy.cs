@@ -17,12 +17,14 @@ using Agromancy.Menus;
 using Agromancy.Models;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
+using StardewValley.GameData.BigCraftables;
 using StardewValley.GameData.Buffs;
 using StardewValley.GameData.Crops;
 using StardewValley.GameData.GiantCrops;
 using StardewValley.GameData.Objects;
 using StardewValley.GameData.Tools;
 using StardewValley.Mods;
+using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 
 namespace Agromancy
@@ -46,6 +48,7 @@ namespace Agromancy
         public static Effect StatsFx = null!;
         public static Effect LiquidCircleFx = null!;
         public static Effect DissolveFx = null!;
+        public static Effect EssenceVialFx = null!;
 
         internal static string UNIQUE_ID => Manifest.UniqueID;
 
@@ -77,6 +80,8 @@ namespace Agromancy
                 LiquidCircleFx = new Effect(Game1.graphics.GraphicsDevice, liquidCircleStream);
                 byte[] dissolveStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/dissolve.mgfx"));
                 DissolveFx = new Effect(Game1.graphics.GraphicsDevice, dissolveStream);
+                byte[] essenceVialStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/essencevial.mgfx"));
+                EssenceVialFx = new Effect(Game1.graphics.GraphicsDevice, essenceVialStream);
             }
             catch (Exception e)
             {
@@ -101,24 +106,6 @@ namespace Agromancy
 
         private void OnAssetsRequested(object? sender, AssetRequestedEventArgs e)
         {
-            if (e.NameWithoutLocale.IsEquivalentTo("Data/Crops"))
-            {
-                e.Edit(asset =>
-                {
-                    var data = asset.AsDictionary<string, CropData>().Data;
-                    data["472"].HarvestMinQuality = 2;
-                });
-            }
-
-            if (e.NameWithoutLocale.IsEquivalentTo("Data/GiantCrops"))
-            {
-                e.Edit(asset =>
-                {
-                    var data = asset.AsDictionary<string, GiantCropData>().Data;
-                    data["Melon"].Chance = 0.9f;
-                });
-            }
-
             if (e.NameWithoutLocale.IsEquivalentTo("Data/Objects"))
             {
                 e.Edit(asset =>
@@ -133,7 +120,7 @@ namespace Agromancy
                         Category = 0,
                         Price = 100,
                         Texture = $"{UNIQUE_ID}/Objects",
-                        SpriteIndex = 0,
+                        SpriteIndex = 1,
                     };
                 });
             }
@@ -162,6 +149,31 @@ namespace Agromancy
                 });
             }
 
+            if (e.NameWithoutLocale.IsEquivalentTo("Data/BigCraftables"))
+            {
+                e.Edit(asset =>
+                {
+                    var data = asset.AsDictionary<string, BigCraftableData>().Data;
+                    data[$"{UNIQUE_ID}_Pedestal"] = new BigCraftableData()
+                    {
+                        Name = $"{UNIQUE_ID}_Pedestal",
+                        DisplayName = "Agromantic Pedestal", // TODO: i18n
+                        Description = "A pedestal for placing an essence vial upon for agromantic rituals.", // TODO: i18n
+                        Texture = $"{UNIQUE_ID}/Pedestals",
+                        SpriteIndex = 0,
+                        CustomFields = new Dictionary<string, string>()
+                        {
+                            { UNIQUE_ID, $"(O){UNIQUE_ID}_EssenceVial" },
+                        }
+                    };
+                });
+            }
+
+            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/Pedestals"))
+            {
+                e.LoadFromModFile<Texture2D>("assets/pedestals.png", AssetLoadPriority.Medium);
+            }
+
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AgrometerFrame"))
             {
                 e.LoadFromModFile<Texture2D>("assets/menuBG_Leafy.png", AssetLoadPriority.Exclusive);
@@ -179,12 +191,12 @@ namespace Agromancy
 
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/MonochromeArrows"))
             {
-                e.LoadFromModFile<Texture2D>("assets/arrows.png", AssetLoadPriority.Exclusive);
+                e.LoadFromModFile<Texture2D>("assets/arrows.png", AssetLoadPriority.Medium);
             }
             
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/AllButton"))
             {
-                e.LoadFromModFile<Texture2D>("assets/allButton.png", AssetLoadPriority.Exclusive);
+                e.LoadFromModFile<Texture2D>("assets/allButton.png", AssetLoadPriority.Medium);
             }
 
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/Objects"))
@@ -279,6 +291,14 @@ namespace Agromancy
         {
             if (!Context.IsWorldReady)
                 return;
+
+            if (e.Button is SButton.F6)
+            {
+                // ItemPedestal ped = ItemRegistry.Create<ItemPedestal>("(BC)221");
+                var ped = ItemRegistry.Create("(BC)221");
+                // ped.lockOnSuccess.Value = false;
+                Game1.player.addItemToInventoryBool(ped);
+            }
 
             if (e.Button is SButton.F8)
             {

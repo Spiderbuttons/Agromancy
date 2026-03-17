@@ -127,7 +127,7 @@ public partial class AgrometerMenu
         Color colourOne = isExtractMode ? inputColour : extractColour;
         Color colourTwo = isExtractMode ? extractColour : inputColour;
         float rotationLerp = MathHelper.Lerp(0, 1, Math.Abs(180 - (currentMenuRotation % 360)) / 180f);
-        Color currentVialSlotColour = Color.Lerp(isExtractMode ? colourOne : colourTwo, isExtractMode ? colourTwo : colourOne, rotationLerp);   
+        Color currentVialSlotColour = Color.Lerp(isExtractMode ? colourOne : colourTwo, isExtractMode ? colourTwo : colourOne, rotationLerp);
 
         b.Draw(
             texture: itemSlotTexture,
@@ -151,7 +151,37 @@ public partial class AgrometerMenu
         
         if (EssenceVial is not null)
         {
+            for (int i = 0; i < 7; i++)
+            {
+                EssenceVial.modData.TryAdd($"{Agromancy.UNIQUE_ID}_{i}", "0");
+            }
+            
+            float yield = float.Parse(EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_0"]) / 255f;
+            float quality = float.Parse(EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_1"]) / 255f;
+            float growth = float.Parse(EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_2"]) / 255f;
+            float giant = float.Parse(EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_3"]) / 255f;
+            float water = float.Parse(EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_4"]) / 255f;
+            float seed = float.Parse(EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_5"]) / 255f;
+            float total = yield + quality + growth + giant + water + seed;
+
+            float fillPercentage = total / (255f * 6f);
+            // fillPercentage = (float)Game1.getMousePosition().X / Game1.viewport.Width;
+            
             Rectangle sourceRect = iData.GetSourceRect(0, EssenceVial.ParentSheetIndex);
+            
+            // This first draw is for the rainbow essence inside the vial.
+            b.Draw(
+                texture: Game1.staminaRect,
+                position: slotPosition - new Vector2(0f, slotPosition.Y >= Game1.uiViewport.Height / 2f ? -14 : 14) + randomJitter,
+                sourceRectangle: new Rectangle(0, 0, 8, 6),
+                color: Utility.GetPrismaticColor() * 0.85f,
+                rotation: currentMenuRotation / 360f * MathHelper.TwoPi + MathHelper.ToRadians(180f),
+                origin: new Vector2(4f, 0f),
+                scale: new Vector2(4f, MathHelper.Lerp(0f, 4f, fillPercentage)) * GetItemSlotScale(2).X * 0.6f * 0.75f,
+                effects: SpriteEffects.None,
+                layerDepth: 0.505f
+            );
+            
             b.Draw(
                 texture: texture,
                 position: slotPosition + new Vector2(0, slotPosition.Y >= Game1.uiViewport.Height / 2f ? -2 : 2) - new Vector2(texture.Width, texture.Height * 2f) + randomJitter + new Vector2(32f, 32f),
