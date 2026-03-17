@@ -120,7 +120,7 @@ namespace Agromancy
                         Category = 0,
                         Price = 100,
                         Texture = $"{UNIQUE_ID}/Objects",
-                        SpriteIndex = 1,
+                        SpriteIndex = 0,
                     };
                 });
             }

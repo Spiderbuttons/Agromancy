@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using Agromancy.Helpers;
+using Agromancy.Pedestals;
 using HarmonyLib;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
@@ -23,14 +24,13 @@ public class ItemPedestalPatches
 
         if (!data.QualifiedItemId.Equals($"(BC){Agromancy.UNIQUE_ID}_Pedestal")) return true;
         
-        
         StardewValley.Object? requiredItem = null;
         if (data.RawData is BigCraftableData { CustomFields: not null } bData && bData.CustomFields.TryGetValue(Agromancy.UNIQUE_ID, out string? itemId))
         {
             requiredItem = ItemRegistry.Create<StardewValley.Object>(ItemRegistry.QualifyItemId(itemId));
         }
         
-        __result = new ItemPedestal(Vector2.Zero, requiredItem, lock_on_success: false, success_color: Color.White, itemId: data.ItemId);
+        __result = new AgromanticPedestal(Vector2.Zero, requiredItem, lockOnSuccess: false, successColor: Color.White, itemId: data.ItemId);
         return false;
 
     }
@@ -39,6 +39,8 @@ public class ItemPedestalPatches
     [HarmonyPatch(typeof(ItemPedestal), nameof(ItemPedestal.draw))]
     public static bool draw_Prefix(ItemPedestal __instance, SpriteBatch b, int x, int y, float alpha)
     {
+        return true;
+        
         if (!__instance.QualifiedItemId.Equals($"(BC){Agromancy.UNIQUE_ID}_Pedestal")) return true;
         
         Vector2 position = new Vector2(x * 64, y * 64);
@@ -57,7 +59,7 @@ public class ItemPedestalPatches
             }
             __instance.heldObject.Value.draw(b, (int)draw_position.X * 64, (int)((draw_position.Y - 0.2f) * 64f) - 64, position.Y / 10000f, 1f);
         }
-
+    
         return false;
     }
 }
