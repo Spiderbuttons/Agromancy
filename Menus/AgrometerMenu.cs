@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Agromancy.Helpers;
 using Agromancy.Models;
+using Agromancy.Patches;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -172,7 +173,7 @@ public partial class AgrometerMenu : IClickableMenu
         for (int i = 0; i < EssencesBeingDrained.Count; i++)
         {
             EssencesBeingDrained[i] = true;
-            var didDrain = drainEssence(i);
+            var didDrain = drainEssenceFromCrop(i);
             if (didDrain)
             {
                 didDrainAny = true;
@@ -189,9 +190,9 @@ public partial class AgrometerMenu : IClickableMenu
         }
     }
 
-    private bool drainEssence(int essenceIdx)
+    private bool drainEssenceFromCrop(int essenceIdx)
     {
-        if (EssenceVial is null) return false;
+        if (EssenceVial is null || !canVialTierHoldEssence(essenceIdx)) return false;
 
         CropEssences? essences = GetCurrentlySelectedCropEssences();
         if (essences is null || EssenceCalculator.GetEssence(essences, essenceIdx) <= 0)
@@ -217,9 +218,9 @@ public partial class AgrometerMenu : IClickableMenu
         return true;
     }
 
-    private bool infuseEssence(int essenceIdx)
+    private bool infuseEssenceFromVial(int essenceIdx)
     {
-        if (EssenceVial is null) return false;
+        if (EssenceVial is null || !canVialTierInfuseEssence(essenceIdx)) return false;
 
         CropEssences? essences = GetCurrentlySelectedCropEssences();
         if (essences is null || EssenceCalculator.GetEssence(essences, essenceIdx) >= 255)
@@ -253,7 +254,7 @@ public partial class AgrometerMenu : IClickableMenu
         for (int i = 0; i < EssencesBeingDrained.Count; i++)
         {
             EssencesBeingDrained[i] = true;
-            var didInfuse = infuseEssence(i);
+            var didInfuse = infuseEssenceFromVial(i);
             if (didInfuse)
             {
                 didInfuseAny = true;
@@ -268,6 +269,50 @@ public partial class AgrometerMenu : IClickableMenu
             cue.Pitch = 0.5f + (float)rng.NextDouble() * 0.35f;
             extractAllCooldown = 85;
         }
+    }
+
+    private bool canVialTierHoldEssence(int essenceIdx)
+    {
+        var vial = GetEssenceVial();
+        if (vial is null) return false;
+        
+        int vialTier = ObjectPatches.GetEssenceVialTier(vial);
+        switch (vialTier)
+        {
+            case < 1:
+                return false;
+            case >= 3:
+                return true;
+        }
+
+        float currentVialAmount = GetEssenceInVial(essenceIdx);
+        float maxEssenceForTier = 255f * 10f * vialTier;
+        return currentVialAmount < maxEssenceForTier;
+    }
+
+    private bool canVialTierInfuseEssence(int essenceIdx)
+    {
+        var vial = GetEssenceVial();
+        if (vial is null) return false;
+        
+        int vialTier = ObjectPatches.GetEssenceVialTier(vial);
+        switch (vialTier)
+        {
+            case < 1:
+                return false;
+            case >= 3:
+                return true;
+        }
+        
+        CropEssences? essences = GetCurrentlySelectedCropEssences();
+        if (essences is null || EssenceCalculator.GetEssence(essences, essenceIdx) >= 255)
+        {
+            return false;
+        }
+        
+        float maxEssenceForTier = vialTier * 85f;
+        Log.Debug($"Checking if vial can infuse essence {essenceIdx}: vial tier {vialTier}, essence in vial {GetEssenceInVial(essenceIdx)}, max for tier {maxEssenceForTier}");
+        return EssenceCalculator.GetEssence(essences, essenceIdx) < maxEssenceForTier;
     }
 
     private void cannotDrainEssenceFeedback()

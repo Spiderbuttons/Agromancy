@@ -21,6 +21,18 @@ public static class ObjectPatches
                obj.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_T2EssenceVial") ||
                obj.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_T3EssenceVial");
     }
+
+    public static int GetEssenceVialTier(Item obj)
+    {
+        if (!obj.IsEssenceVial()) return -1;
+        return obj.QualifiedItemId switch
+        {
+            var id when id.Equals($"(O){Agromancy.UNIQUE_ID}_T1EssenceVial") => 1,
+            var id when id.Equals($"(O){Agromancy.UNIQUE_ID}_T2EssenceVial") => 2,
+            var id when id.Equals($"(O){Agromancy.UNIQUE_ID}_T3EssenceVial") => 3,
+            _ => -1
+        };
+    }
     
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Object), nameof(Object.getDescription))]
@@ -63,7 +75,7 @@ public static class ObjectPatches
         float seed = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_5"]) / 255f;
         float total = yield + quality + growth + giant + water + seed;
 
-        float fillPercentage = total / (255f * 6f);
+        float fillPercentage = total / (10f * GetEssenceVialTier(__instance) * 6f);
         
         ParsedItemData itemData2 = ItemRegistry.GetDataOrErrorItem(__instance.QualifiedItemId);
         spriteBatch.Draw(
@@ -102,7 +114,7 @@ public static class ObjectPatches
         float seed = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_5"]) / 255f;
         float total = yield + quality + growth + giant + water + seed;
 
-        float fillPercentage = total / (255f * 6f);
+        float fillPercentage = total / (10f * GetEssenceVialTier(__instance) * 6f);
         
         ParsedItemData itemData2 = ItemRegistry.GetDataOrErrorItem(__instance.QualifiedItemId);
         spriteBatch.Draw(

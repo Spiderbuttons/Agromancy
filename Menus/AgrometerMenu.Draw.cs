@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Agromancy.Helpers;
 using Agromancy.Models;
+using Agromancy.Patches;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
@@ -156,6 +157,8 @@ public partial class AgrometerMenu
                 EssenceVial.modData.TryAdd($"{Agromancy.UNIQUE_ID}_{i}", "0");
             }
             
+            int vialTier = ObjectPatches.GetEssenceVialTier(EssenceVial);
+            
             float yield = float.Parse(EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_0"]) / 255f;
             float quality = float.Parse(EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_1"]) / 255f;
             float growth = float.Parse(EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_2"]) / 255f;
@@ -164,8 +167,7 @@ public partial class AgrometerMenu
             float seed = float.Parse(EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_5"]) / 255f;
             float total = yield + quality + growth + giant + water + seed;
 
-            float fillPercentage = total / (255f * 6f);
-            // fillPercentage = (float)Game1.getMousePosition().X / Game1.viewport.Width;
+            float fillPercentage = Math.Clamp(total / (10f * vialTier * 6f), 0f, 1f);
             
             Rectangle sourceRect = iData.GetSourceRect();
             

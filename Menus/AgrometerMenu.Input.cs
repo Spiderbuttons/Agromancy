@@ -59,7 +59,7 @@ public partial class AgrometerMenu
 
             if (EssencesBeingDrained[i])
             {
-                bool didDrain = isExtractMode ? drainEssence(i) : infuseEssence(i);
+                bool didDrain = isExtractMode ? drainEssenceFromCrop(i) : infuseEssenceFromVial(i);
                 if (didDrain)
                 {
                     createParticleFromDraining(i, essenceCenter, fromVial: !isExtractMode);
