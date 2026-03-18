@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Agromancy.Models;
+using Agromancy.Patches;
 using Microsoft.Xna.Framework;
 using StardewValley;
 
@@ -32,7 +33,7 @@ public partial class AgrometerMenu
         for (var index = 0; index < inventory.Count; index++)
         {
             var item = inventory[index];
-            if (item is not null && !item.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_EssenceVial") &&
+            if (item is not null && !item.IsEssenceVial() &&
                 item.modData.ContainsKey(Agromancy.Manifest.UniqueID))
             {
                 if (isExtractMode && CropManager.GetCropReferenceByCropId(item.QualifiedItemId) is not null)

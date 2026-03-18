@@ -111,16 +111,38 @@ namespace Agromancy
                 e.Edit(asset =>
                 {
                     var data = asset.AsDictionary<string, ObjectData>().Data;
-                    data[$"{UNIQUE_ID}_EssenceVial"] = new ObjectData()
+                    data[$"{UNIQUE_ID}_T1EssenceVial"] = new ObjectData()
                     {
-                        Name = $"{UNIQUE_ID}_EssenceVial",
-                        DisplayName = "Essence Vial", // TODO: i18n
-                        Description = "A capsule capable of storing a seemingly limitless amount of magical essence.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
+                        Name = $"{UNIQUE_ID}_T1EssenceVial",
+                        DisplayName = "Tier 1 Essence Vial", // TODO: i18n
+                        Description = "A capsule capable of storing and infusing a small amount of magical essence.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
                         Type = "Basic",
                         Category = 0,
                         Price = 100,
                         Texture = $"{UNIQUE_ID}/Objects",
                         SpriteIndex = 0,
+                    };
+                    data[$"{UNIQUE_ID}_T2EssenceVial"] = new ObjectData()
+                    {
+                        Name = $"{UNIQUE_ID}_T2EssenceVial",
+                        DisplayName = "Tier 2 Essence Vial", // TODO: i18n
+                        Description = "A capsule capable of storing and infusing a large amount of magical essence.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
+                        Type = "Basic",
+                        Category = 0,
+                        Price = 100,
+                        Texture = $"{UNIQUE_ID}/Objects",
+                        SpriteIndex = 1,
+                    };
+                    data[$"{UNIQUE_ID}_T3EssenceVial"] = new ObjectData()
+                    {
+                        Name = $"{UNIQUE_ID}_T3EssenceVial",
+                        DisplayName = "Tier 3 Essence Vial", // TODO: i18n
+                        Description = "A capsule capable of storing and infusing a seemingly limitless amount of magical essence.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
+                        Type = "Basic",
+                        Category = 0,
+                        Price = 100,
+                        Texture = $"{UNIQUE_ID}/Objects",
+                        SpriteIndex = 2,
                     };
                 });
             }
@@ -137,7 +159,7 @@ namespace Agromancy
                         DisplayName = "Agrometer", // TODO: i18n
                         Description = "A magical tool that allows you to visualize the magical essences of your crops.", // TODO: i18n
                         Texture = $"{UNIQUE_ID}/Objects",
-                        SpriteIndex = 1,
+                        SpriteIndex = 3,
                         AttachmentSlots = 1,
                         CanBeLostOnDeath = false,
                         SetProperties = new Dictionary<string, string>()
@@ -158,12 +180,20 @@ namespace Agromancy
                     {
                         Name = $"{UNIQUE_ID}_Pedestal",
                         DisplayName = "Agromantic Pedestal", // TODO: i18n
-                        Description = "A pedestal for placing an essence vial upon for agromantic rituals.", // TODO: i18n
+                        Description = "A pedestal meant to surround an altar for the initiation of agromantic rituals.", // TODO: i18n
                         Texture = $"{UNIQUE_ID}/Pedestals",
                         SpriteIndex = 0,
+                    };
+                    data[$"{UNIQUE_ID}_Altar"] = new BigCraftableData()
+                    {
+                        Name = $"{UNIQUE_ID}_Altar",
+                        DisplayName = "Agromantic Altar", // TODO: i18n
+                        Description = "A pedestal for placing an essence vial upon for agromantic rituals.", // TODO: i18n
+                        Texture = $"{UNIQUE_ID}/Pedestals",
+                        SpriteIndex = 1,
                         CustomFields = new Dictionary<string, string>()
                         {
-                            { UNIQUE_ID, $"(O){UNIQUE_ID}_EssenceVial" },
+                            { UNIQUE_ID, $"(O){UNIQUE_ID}_T1EssenceVial" },
                         }
                     };
                 });
@@ -295,7 +325,7 @@ namespace Agromancy
             if (e.Button is SButton.F6)
             {
                 // ItemPedestal ped = ItemRegistry.Create<ItemPedestal>("(BC)221");
-                var ped = ItemRegistry.Create("(BC)221");
+                var ped = ItemRegistry.Create<ItemPedestal>("(BC)221");
                 // ped.lockOnSuccess.Value = false;
                 Game1.player.addItemToInventoryBool(ped);
             }

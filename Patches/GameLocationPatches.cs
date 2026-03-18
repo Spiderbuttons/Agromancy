@@ -28,7 +28,7 @@ public class GameLocationPatches
         if (rng.NextDouble() > chance) return;
         
         Tool agrometer = ItemRegistry.Create<Tool>($"(T){Agromancy.UNIQUE_ID}_Agrometer");
-        Object essenceVial = ItemRegistry.Create<Object>($"(O){Agromancy.UNIQUE_ID}_EssenceVial");
+        Object essenceVial = ItemRegistry.Create<Object>($"(O){Agromancy.UNIQUE_ID}_T1EssenceVial");
         agrometer.attachments[0] = essenceVial;
         Game1.createItemDebris(agrometer, new Vector2(xLocation * 64, yLocation * 64), Game1.random.Next(4), location: __instance);
     }

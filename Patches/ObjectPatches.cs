@@ -13,13 +13,20 @@ using Object = StardewValley.Object;
 namespace Agromancy.Patches;
 
 [HarmonyPatch]
-public class ObjectPatches
+public static class ObjectPatches
 {
+    public static bool IsEssenceVial(this Item obj)
+    {
+        return obj.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_T1EssenceVial") ||
+               obj.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_T2EssenceVial") ||
+               obj.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_T3EssenceVial");
+    }
+    
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Object), nameof(Object.getDescription))]
     public static void getDescription_Postfix(Object __instance, ref string __result)
     {
-        if (!__instance.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_EssenceVial")) return;
+        if (!__instance.IsEssenceVial()) return;
         
         for (int i = 0; i < 7; i++)
         {
@@ -41,7 +48,7 @@ public class ObjectPatches
     [HarmonyPatch(typeof(Object), nameof(Object.draw), typeof(SpriteBatch), typeof(int), typeof(int), typeof(float), typeof(float))]
     public static void draw_Prefix(Object __instance, SpriteBatch spriteBatch, int xNonTile, int yNonTile, float layerDepth, float alpha)
     {
-        if (!__instance.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_EssenceVial")) return;
+        if (!__instance.IsEssenceVial()) return;
         
         for (int i = 0; i < 7; i++)
         {
@@ -80,7 +87,7 @@ public class ObjectPatches
     [HarmonyPatch(typeof(Object), nameof(Object.drawInMenu))]
     public static void drawInMenu_Prefix(Object __instance, SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow)
     {
-        if (!__instance.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_EssenceVial")) return;
+        if (!__instance.IsEssenceVial()) return;
         
         for (int i = 0; i < 7; i++)
         {
@@ -116,7 +123,7 @@ public class ObjectPatches
     [HarmonyPatch(typeof(Object), nameof(Object.maximumStackSize))]
     public static void maximumStackSize_Postfix(Object __instance, ref int __result)
     {
-        if (__instance.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_EssenceVial"))
+        if (__instance.IsEssenceVial())
         {
             __result = 1;
         }

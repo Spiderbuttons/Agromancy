@@ -24,7 +24,7 @@ public static class ToolPatches
     {
         if (__instance.IsAgrometer())
         {
-            __result = o.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_EssenceVial");
+            __result = o.IsEssenceVial();
         }
     }
     

@@ -140,7 +140,7 @@ public partial class AgrometerMenu
             effects: SpriteEffects.None,
             layerDepth: 0.5f);
         
-        ParsedItemData iData = ItemRegistry.GetData(EssenceVial?.QualifiedItemId ?? $"(O){Agromancy.UNIQUE_ID}_EssenceVial");
+        ParsedItemData iData = ItemRegistry.GetData(EssenceVial?.QualifiedItemId ?? $"(O){Agromancy.UNIQUE_ID}_T1EssenceVial");
         Texture2D texture = iData.GetTexture();
         Vector2 randomJitter = Vector2.Zero;
         if (IsCropBeingDrained && EssenceVial is null)
@@ -167,7 +167,7 @@ public partial class AgrometerMenu
             float fillPercentage = total / (255f * 6f);
             // fillPercentage = (float)Game1.getMousePosition().X / Game1.viewport.Width;
             
-            Rectangle sourceRect = iData.GetSourceRect(0, EssenceVial.ParentSheetIndex);
+            Rectangle sourceRect = iData.GetSourceRect();
             
             // This first draw is for the rainbow essence inside the vial.
             b.Draw(
@@ -184,7 +184,7 @@ public partial class AgrometerMenu
             
             b.Draw(
                 texture: texture,
-                position: slotPosition + new Vector2(0, slotPosition.Y >= Game1.uiViewport.Height / 2f ? -2 : 2) - new Vector2(texture.Width, texture.Height * 2f) + randomJitter + new Vector2(32f, 32f),
+                position: slotPosition + new Vector2(0, slotPosition.Y >= Game1.uiViewport.Height / 2f ? -2 : 2) - new Vector2(sourceRect.Width, sourceRect.Height) + randomJitter + new Vector2(16f, 16f),
                 sourceRectangle: sourceRect,
                 color: Color.White * 1f * (EssenceVial is not null ? 1f : 0.4f),
                 rotation: currentMenuRotation / 360f * MathHelper.TwoPi,
