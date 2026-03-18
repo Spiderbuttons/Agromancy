@@ -75,7 +75,7 @@ public static class ObjectPatches
         float seed = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_5"]) / 255f;
         float total = yield + quality + growth + giant + water + seed;
 
-        float fillPercentage = total / (10f * GetEssenceVialTier(__instance) * 6f);
+        float fillPercentage = Math.Clamp(total / (10f * GetEssenceVialTier(__instance) * 6f), 0f, 1f);
         
         ParsedItemData itemData2 = ItemRegistry.GetDataOrErrorItem(__instance.QualifiedItemId);
         spriteBatch.Draw(
@@ -114,7 +114,7 @@ public static class ObjectPatches
         float seed = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_5"]) / 255f;
         float total = yield + quality + growth + giant + water + seed;
 
-        float fillPercentage = total / (10f * GetEssenceVialTier(__instance) * 6f);
+        float fillPercentage = Math.Clamp(total / (10f * GetEssenceVialTier(__instance) * 6f), 0f, 1f);
         
         ParsedItemData itemData2 = ItemRegistry.GetDataOrErrorItem(__instance.QualifiedItemId);
         spriteBatch.Draw(
