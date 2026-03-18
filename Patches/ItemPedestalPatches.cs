@@ -22,7 +22,7 @@ public class ItemPedestalPatches
     {
         if (data is null) throw new ArgumentNullException(nameof(data));
 
-        if (!data.QualifiedItemId.Equals($"(BC){Agromancy.UNIQUE_ID}_Pedestal")) return true;
+        if (!data.QualifiedItemId.Equals($"(BC){Agromancy.UNIQUE_ID}_Pedestal") && !data.QualifiedItemId.Equals($"(BC){Agromancy.UNIQUE_ID}_Altar")) return true;
         
         StardewValley.Object? requiredItem = null;
         if (data.RawData is BigCraftableData { CustomFields: not null } bData && bData.CustomFields.TryGetValue(Agromancy.UNIQUE_ID, out string? itemId))
@@ -30,7 +30,8 @@ public class ItemPedestalPatches
             requiredItem = ItemRegistry.Create<StardewValley.Object>(ItemRegistry.QualifyItemId(itemId));
         }
         
-        __result = new AgromanticPedestal(Vector2.Zero, requiredItem, lockOnSuccess: false, successColor: Color.White, itemId: data.ItemId);
+        if (data.QualifiedItemId.Equals($"(BC){Agromancy.UNIQUE_ID}_Pedestal")) __result = new AgromanticPedestal(Vector2.Zero, requiredItem, lockOnSuccess: false, successColor: Color.White, itemId: data.ItemId);
+        else if (data.QualifiedItemId.Equals($"(BC){Agromancy.UNIQUE_ID}_Altar")) __result = new AgromanticAltar(Vector2.Zero, lockOnSuccess: false, successColor: Color.White, itemId: data.ItemId);
         return false;
 
     }

@@ -7,11 +7,11 @@
     "EntryDll": "Agromancy.dll",
     "Dependencies": [
         {
-            "UniqueID": "Spiderbuttons.BETAS",
-            "IsRequired": false
+            "UniqueID": "spacechase0.SpaceCore",
+            "IsRequired": true
         },
         {
-            "UniqueID": "spacechase0.SpaceCore",
+            "UniqueID": "Spiderbuttons.BETAS",
             "IsRequired": false
         }
     ],

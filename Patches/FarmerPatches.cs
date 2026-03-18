@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Agromancy.Helpers;
+using Agromancy.Menus;
 using HarmonyLib;
 using StardewValley;
 
@@ -8,6 +9,22 @@ namespace Agromancy.Patches;
 [HarmonyPatch(typeof(Farmer))]
 public static class FarmerPatches
 {
+    [HarmonyPrefix]
+    [HarmonyPatch(nameof(Farmer.draw))]
+    public static bool draw_Prefix(Farmer __instance)
+    {
+        return !__instance.UniqueMultiplayerID.Equals(Game1.player.UniqueMultiplayerID) ||
+               Game1.activeClickableMenu is not AgrometerMenu;
+    }
+    
+    [HarmonyPrefix]
+    [HarmonyPatch(nameof(Farmer.DrawShadow))]
+    public static bool drawShadow_Prefix(Farmer __instance)
+    {
+        return !__instance.UniqueMultiplayerID.Equals(Game1.player.UniqueMultiplayerID) ||
+               Game1.activeClickableMenu is not AgrometerMenu;
+    }
+    
     [HarmonyPostfix]
     [HarmonyPatch(nameof(Farmer.OnItemReceived))]
     public static void OnItemReceived_Postfix(Farmer __instance, Item item)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using Agromancy.APIs;
 using GenericModConfigMenu;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
@@ -15,6 +16,7 @@ using Agromancy.Helpers;
 using Agromancy.Commands;
 using Agromancy.Menus;
 using Agromancy.Models;
+using Agromancy.Pedestals;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using StardewValley.GameData.BigCraftables;
@@ -101,6 +103,14 @@ namespace Agromancy
         {
             var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
             if (configMenu != null) Config.SetupConfig(configMenu, ModManifest, Helper);
+
+            var SCAPI = Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore");
+            if (SCAPI != null)
+            {
+                SCAPI.RegisterSerializerType(typeof(AgromanticPedestal));
+                SCAPI.RegisterSerializerType(typeof(AgromanticAltar));
+            }
+            
             CropManager = new CropManager();
         }
 
@@ -115,7 +125,7 @@ namespace Agromancy
                     {
                         Name = $"{UNIQUE_ID}_T1EssenceVial",
                         DisplayName = "Tier 1 Essence Vial", // TODO: i18n
-                        Description = "A capsule capable of storing and infusing a small amount of magical essence.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
+                        Description = "A capsule capable of storing and infusing a small amount of magical essence. Can be upgraded at an Agromantic Altar.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
                         Type = "Basic",
                         Category = 0,
                         Price = 100,
@@ -126,7 +136,7 @@ namespace Agromancy
                     {
                         Name = $"{UNIQUE_ID}_T2EssenceVial",
                         DisplayName = "Tier 2 Essence Vial", // TODO: i18n
-                        Description = "A capsule capable of storing and infusing a large amount of magical essence.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
+                        Description = "A capsule capable of storing and infusing a large amount of magical essence.Can be upgraded at an Agromantic Altar.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
                         Type = "Basic",
                         Category = 0,
                         Price = 100,
