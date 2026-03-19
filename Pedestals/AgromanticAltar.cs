@@ -20,7 +20,7 @@ public class AgromanticAltar : AgromanticPedestal
     private NetBool shouldShowPedestals = new(true);
     private NetInt puffTimer = new(0);
 
-    public AgromanticAltar(Vector2 tile, bool lockOnSuccess, Color successColor, string itemId) : base(tile, [$"(O){Agromancy.UNIQUE_ID}_T1EssenceVial"], lockOnSuccess, successColor, itemId)
+    public AgromanticAltar(Vector2 tile, bool lockOnSuccess, Color successColor, string itemId) : base(tile, [$"(O){Agromancy.UNIQUE_ID}_T1EssenceVial", $"(O){Agromancy.UNIQUE_ID}_T2EssenceVial"], lockOnSuccess, successColor, itemId)
     {
         
     }
@@ -75,7 +75,7 @@ public class AgromanticAltar : AgromanticPedestal
 
     public void setPedestalsForRitual()
     {
-        List<string> cropList = getCropsFromSeason(Season.Spring);
+        List<string> cropList = getCropsFromSeason((Season)ObjectPatches.GetEssenceVialTier(heldObject.Value));
         foreach (var ped in getSurroundingPedestals())
         {
             ped.setRequiredItems(cropList.OrderBy(_ => Guid.NewGuid()).ToList(), ObjectPatches.GetEssenceVialTier(heldObject.Value));
