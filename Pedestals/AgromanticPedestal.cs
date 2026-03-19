@@ -15,11 +15,11 @@ namespace Agromancy.Pedestals;
 [XmlType("Mods_Spiderbuttons.Agromancy_AgromanticPedestal")]
 public class AgromanticPedestal : ItemPedestal
 {
-    protected string[] requiredItems;
+    public string[] requiredItems;
     protected int currentlyShownItemIndex;
     protected int lastItemUpdate;
 
-    private int vialTier = -1;
+    public int vialTier = -1;
 
     public NetBool isInRitual = new(false);
     public NetBool isReadyForRitual = new(false);
@@ -132,6 +132,7 @@ public class AgromanticPedestal : ItemPedestal
     {
         Vector2 position = new Vector2(x * 64, y * 64);
         ParsedItemData itemData = ItemRegistry.GetDataOrErrorItem(QualifiedItemId);
+        itemData.LoadTextureIfNeeded();
         b.Draw(itemData.Texture, Game1.GlobalToLocal(Game1.viewport, position), itemData.GetSourceRect(0, 0), Color.White, 0f, new Vector2(0f, 16f), 4f, SpriteEffects.None, Math.Max(0f, (position.Y - 2f) / 10000f));
         
         // if (__instance.match.Value)
@@ -183,6 +184,11 @@ public class AgromanticPedestal : ItemPedestal
         }
     }
     
+    public bool areWePreppedForRitual()
+    {
+        return isReadyForRitual.Value;
+    }
+    
     public override bool placementAction(GameLocation location, int x, int y, Farmer who = null)
     {
         return base.placementAction(location, x, y, who);
@@ -197,7 +203,13 @@ public class AgromanticPedestal : ItemPedestal
     {
         return "Agromancy";
     }
-    
+
+    public override bool performObjectDropInAction(Item dropInItem, bool probe, Farmer who, bool returnFalseIfItemConsumed = false)
+    {
+        if (this is not AgromanticAltar && !areWePreppedForRitual() || isInRitual.Value) return false;
+        return base.performObjectDropInAction(dropInItem, probe, who, returnFalseIfItemConsumed);
+    }
+
     public override void initNetFields()
     {
         base.initNetFields();

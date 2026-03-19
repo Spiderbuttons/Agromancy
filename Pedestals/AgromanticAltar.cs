@@ -79,6 +79,7 @@ public class AgromanticAltar : AgromanticPedestal
         foreach (var ped in getSurroundingPedestals())
         {
             ped.setRequiredItems(cropList.OrderBy(_ => Guid.NewGuid()).ToList(), ObjectPatches.GetEssenceVialTier(heldObject.Value));
+            ped.isReadyForRitual.Value = true;
         }
     }
 
@@ -162,7 +163,7 @@ public class AgromanticAltar : AgromanticPedestal
                 texture: pedData.Texture,
                 position: Game1.GlobalToLocal(Game1.viewport, drawLocation),
                 sourceRectangle: pedData.GetSourceRect(),
-                color: (isPlaceable && !isTileOccupied ? Color.White : Color.Red) * 0.65f,
+                color: (isPlaceable && !isTileOccupied ? Color.White : Color.Red) * 0.35f,
                 rotation: 0f,
                 origin: new Vector2(0f, 16f),
                 scale: 4f,
@@ -200,11 +201,6 @@ public class AgromanticAltar : AgromanticPedestal
     private bool doWeHaveEnoughPedestals()
     {
         return getSurroundingPedestals().Count >= 4;
-    }
-
-    private bool areWePreppedForRitual()
-    {
-        return isReadyForRitual.Value;
     }
 
     public void checkForRitualStart()
