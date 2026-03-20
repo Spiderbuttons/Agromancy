@@ -317,6 +317,15 @@ public partial class AgrometerMenu : IClickableMenu
         return EssenceCalculator.GetEssence(essences, essenceIdx) < maxEssenceForTier;
     }
 
+    private bool canVialTierInfuseAnyEssence()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (canVialTierInfuseEssence(i)) return true;
+        }
+        return false;
+    }
+
     private void cannotDrainEssenceFeedback()
     {
         if (unsuccessfulDrainCooldown > 0) return;

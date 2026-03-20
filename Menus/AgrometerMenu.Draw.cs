@@ -144,7 +144,7 @@ public partial class AgrometerMenu
         ParsedItemData iData = ItemRegistry.GetData(EssenceVial?.QualifiedItemId ?? $"(O){Agromancy.UNIQUE_ID}_T1EssenceVial");
         Texture2D texture = iData.GetTexture();
         Vector2 randomJitter = Vector2.Zero;
-        if (IsCropBeingDrained && EssenceVial is null)
+        if (IsCropBeingDrained && (EssenceVial is null || !canVialTierInfuseAnyEssence()))
         {
             randomJitter = new Vector2((float)(rng.NextDouble() - 0.5) * 4f,
                 (float)(rng.NextDouble() - 0.5) * 4f);
@@ -446,7 +446,7 @@ public partial class AgrometerMenu
                 ParsedItemData iData = ItemRegistry.GetData(item.QualifiedItemId);
                 Texture2D texture = iData.GetTexture();
                 Vector2 randomJitter = Vector2.Zero;
-                if ((IsCropBeingDrained || isCropSuckedDry) && i is 2 && EssenceVial is not null)
+                if ((IsCropBeingDrained || isCropSuckedDry) && i is 2 && EssenceVial is not null && canVialTierInfuseAnyEssence())
                 {
                     randomJitter = new Vector2((float)(rng.NextDouble() - 0.5) * 4f,
                         (float)(rng.NextDouble() - 0.5) * 4f);
