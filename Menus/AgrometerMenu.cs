@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
+using Object = StardewValley.Object;
 
 namespace Agromancy.Menus;
 
@@ -41,6 +42,9 @@ public partial class AgrometerMenu : IClickableMenu
     private int timeSinceSuckingDry = 0;
 
     private bool isExtractMode = true;
+
+    private int initialCropPrice = -1;
+    private CropEssences? initialCropEssences = null;
 
     public Random rng = new();
 
@@ -203,6 +207,11 @@ public partial class AgrometerMenu : IClickableMenu
 
     private bool drainEssenceFromCrop(int essenceIdx)
     {
+        if (initialCropPrice == -1 || initialCropEssences == null)
+        {
+            UpdateCropInitials();
+        }
+        
         if (EssenceVial is null || !canVialTierHoldEssence(essenceIdx)) return false;
 
         CropEssences? essences = GetCurrentlySelectedCropEssences();
@@ -212,6 +221,8 @@ public partial class AgrometerMenu : IClickableMenu
         }
 
         if (drainParticleCooldown[essenceIdx] > 0) return true;
+        
+        Object crop = (Object)GetCurrentlySelectedCrop()!;
 
         int currentEssence = EssenceCalculator.GetEssence(essences, essenceIdx);
         int amountToDrain = (int)MathHelper.Lerp(1, 25, MathHelper.Clamp(timeDraining / 5000f, 0f, 1f));
@@ -221,11 +232,17 @@ public partial class AgrometerMenu : IClickableMenu
         int essenceDiff = currentEssence - newEssenceAmount;
 
         float currentVialAmount = GetEssenceInVial(essenceIdx);
-        float newVialAmount = currentVialAmount + essenceDiff * GetCurrentlySelectedCrop()!.Stack;
+        float newVialAmount = currentVialAmount + essenceDiff * crop.Stack;
         EssenceVial.modData[$"{Agromancy.UNIQUE_ID}_{essenceIdx}"] = newVialAmount.ToString(CultureInfo.CurrentCulture);
 
         EssenceCalculator.SetEssence(essences, essenceIdx, newEssenceAmount);
-        GetCurrentlySelectedCrop()!.ApplyEssences(essences);
+        crop.ApplyEssences(essences);
+        crop.Price = Math.Max(
+            0, 
+            (int)MathHelper.Lerp(
+                0, 
+                initialCropPrice, 
+                (float)EssenceCalculator.GetTotalEssences(essences) / EssenceCalculator.GetTotalEssences(initialCropEssences!)));
         return true;
     }
 
@@ -348,6 +365,7 @@ public partial class AgrometerMenu : IClickableMenu
     private void ScrollItem(int direction)
     {
         itemListOffset = (itemListOffset + direction + agromancyCrops.Count) % Math.Max(1, agromancyCrops.Count);
+        UpdateCropInitials();
         Game1.playSound("drumkit6");
     }
 

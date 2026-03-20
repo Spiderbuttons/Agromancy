@@ -5,6 +5,7 @@ using Agromancy.Models;
 using Agromancy.Patches;
 using Microsoft.Xna.Framework;
 using StardewValley;
+using Object = StardewValley.Object;
 
 namespace Agromancy.Menus;
 
@@ -68,6 +69,21 @@ public partial class AgrometerMenu
     public Item? GetCurrentlySelectedCrop()
     {
         return agromancyCrops.Count == 0 ? null : agromancyCrops.Keys.ElementAtOrDefault((2 + itemListOffset) % agromancyCrops.Count);
+    }
+
+    public void UpdateCropInitials()
+    {
+        if (GetCurrentlySelectedCrop() is not Object crop)
+        {
+            initialCropPrice = -1;
+            initialCropEssences = null;
+            return;
+        }
+
+        initialCropPrice = crop.Price;
+        initialCropEssences = CropManager.GrabEssences(crop) ??
+                              EssenceCalculator.DefaultEssences(CropManager.GetCropReferenceByCropId(crop.QualifiedItemId)) ??
+                              EssenceCalculator.EmptyEssences;
     }
     
     public Vector2 GetPointOnCircle(Vector2 circleCenter, float radius, float angleDegrees)

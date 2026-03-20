@@ -97,6 +97,11 @@ public static class EssenceCalculator
         };
     }
 
+    public static int GetTotalEssences(CropEssences essences)
+    {
+        return essences.YieldEssence + essences.QualityEssence + essences.GrowthEssence + essences.GiantEssence + essences.WaterEssence + essences.SeedEssence;
+    }
+
     public static void SetEssence(CropEssences essences, int essenceIdx, int amount)
     {
         if (amount > 255)
