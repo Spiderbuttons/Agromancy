@@ -340,35 +340,7 @@ namespace Agromancy
 
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/Strings"))
             {
-                e.LoadFrom(() =>
-                {
-                    return ModHelper.ModContent.Load<Dictionary<string, string>>(Path.Combine("i18n", "default.json"));
-                    
-                    return new Dictionary<string, string>
-                    {
-                        ["Agromancy"] = i18n.Agromancy(),
-                        ["Pedestal_Name"] = i18n.PedestalName(),
-                        ["Pedestal_Description"] = i18n.PedestalDescription(),
-                        ["Altar_Name"] = i18n.AltarName(),
-                        ["Altar_Description"] = i18n.AltarDescription(),
-                        ["Agrometer_Name"] = i18n.AgrometerName(),
-                        ["Agrometer_Description"] = i18n.AgrometerDescription(),
-                        ["Tier1"] = i18n.Tier1(),
-                        ["Tier2"] = i18n.Tier2(),
-                        ["Tier3"] = i18n.Tier3(),
-                        ["EssenceVial_Name"] = i18n.EssenceVialName(),
-                        ["EssenceVial_Description_T1"] = i18n.EssenceVialDescriptionT1(),
-                        ["EssenceVial_Description_T2"] = i18n.EssenceVialDescriptionT2(),
-                        ["EssenceVial_Description_T3"] = i18n.EssenceVialDescriptionT3(),
-                        ["ContainsEssence"] = i18n.ContainsEssence(),
-                        ["Yield"] = i18n.Yield(),
-                        ["Quality"] = i18n.Quality(),
-                        ["Growth"] = i18n.Growth(),
-                        ["Giant"] = i18n.Giant(),
-                        ["Retention"] = i18n.Retention(),
-                        ["Seed"] = i18n.Seed(),
-                    };
-                }, AssetLoadPriority.Exclusive);
+                e.LoadFrom(() => ModHelper.ModContent.Load<Dictionary<string, string>>(Path.Combine("i18n", "default.json")), AssetLoadPriority.Exclusive);
             }
 
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/Pedestals"))
@@ -448,7 +420,7 @@ namespace Agromancy
             BlurFx.Parameters["Resolution"].SetValue(new Vector2(target.Width, target.Height));
             BlurFx.Parameters["BlurMultiplier"].SetValue(3f);
             BlurFx.Parameters["ClarityCenter"].SetValue(new Vector2(menu.GetAgrometerCenter().X / Game1.uiViewport.Width, menu.GetAgrometerCenter().Y / Game1.uiViewport.Height));
-            BlurFx.Parameters["ClarityRadius"].SetValue(Game1.viewport.Height * 0.33f);
+            BlurFx.Parameters["ClarityRadius"].SetValue(Game1.viewport.Height * 0.33f * Math.Min(Game1.options.uiScale, 1f));
             BlurFx.Parameters["InvertClarity"].SetValue(ModHelper.Input.IsDown(SButton.RightShift));
 
             e.SpriteBatch.End();

@@ -35,13 +35,18 @@ public partial class AgrometerMenu
     public Vector2 GetAgrometerScale()
     {
         float scale = (Game1.uiViewport.Height / 1.25f) / agrometerFrame.Height;
-        return new Vector2(scale, scale) * Game1.options.uiScale;
+        return new Vector2(scale, scale) * Math.Min(Game1.options.uiScale, 1f);
     }
 
     private Vector2 GetAgrometerRingScale()
     {
         float scale = (Game1.uiViewport.Height / 1.55f) / agrometerCircles.Height;
-        return new Vector2(scale, scale) * Game1.options.uiScale;
+        return new Vector2(scale, scale) * Math.Min(Game1.options.uiScale, 1f);
+    }
+
+    private Vector2 ClampVector(Vector2 vector, float min, float max)
+    {
+        return new Vector2(Math.Clamp(vector.X, min, max), Math.Clamp(vector.Y, min, max));
     }
 
     private float GetEssenceContainerRadius()
@@ -60,7 +65,7 @@ public partial class AgrometerMenu
         };
         float targetHeight = Game1.uiViewport.Height / 12f;
         float scaleFactor = targetHeight / (Game1.getSourceRectForStandardTileSheet(Game1.menuTexture, 16).Height);
-        return baseScale * scaleFactor * Game1.options.uiScale;
+        return baseScale * scaleFactor * Math.Min(Game1.options.uiScale, 1f);
     }
 
     private Vector2 GetItemSlotVerticalOffset(int index)
