@@ -146,6 +146,11 @@ public partial class AgrometerMenu : IClickableMenu
         isExtractMode = !isExtractMode;
     }
 
+    public override bool areGamePadControlsImplemented()
+    {
+        return base.areGamePadControlsImplemented();
+    }
+
     public override void populateClickableComponentList()
     {
         base.populateClickableComponentList();
@@ -165,6 +170,12 @@ public partial class AgrometerMenu : IClickableMenu
     {
         base.gameWindowSizeChanged(oldBounds, newBounds);
         shouldUpdateArrows = true;
+    }
+
+    public override bool overrideSnappyMenuCursorMovementBan()
+    {
+        return true;
+        return base.overrideSnappyMenuCursorMovementBan();
     }
 
     private void drainAllEssences()
@@ -337,6 +348,7 @@ public partial class AgrometerMenu : IClickableMenu
     private void ScrollItem(int direction)
     {
         itemListOffset = (itemListOffset + direction + agromancyCrops.Count) % Math.Max(1, agromancyCrops.Count);
+        Game1.playSound("drumkit6");
     }
 
     public override void cleanupBeforeExit()

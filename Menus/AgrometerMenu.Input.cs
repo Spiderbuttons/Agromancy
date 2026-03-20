@@ -16,7 +16,6 @@ public partial class AgrometerMenu
         {
             int direction = UpArrow.bounds.Contains(x, y) ? -1 : 1;
             ScrollItem(direction);
-            Game1.playSound("drumkit6");
         }
         
         Vector2 rotateArrowPosition = GetRotateArrowPosition() - (RotateArrowSourceRect.Size.ToVector2() / 2f) * GetAgrometerScale() * 1.5f;
@@ -107,7 +106,6 @@ public partial class AgrometerMenu
         
         int scrollDirection = direction > 0 ? -1 : 1;
         ScrollItem(scrollDirection);
-        Game1.playSound("drumkit6");
     }
 
     public override void performHoverAction(int x, int y)
@@ -147,13 +145,16 @@ public partial class AgrometerMenu
     {
         base.receiveGamePadButton(button);
 
-        if (button is Buttons.DPadUp or Buttons.LeftThumbstickUp)
+        if (button is Buttons.DPadUp or Buttons.RightThumbstickUp)
         {
             ScrollItem(-1);
         }
-        else if (button is Buttons.DPadDown or Buttons.LeftThumbstickDown)
+        else if (button is Buttons.DPadDown or Buttons.RightThumbstickDown)
         {
             ScrollItem(1);
+        } else if (button is Buttons.RightShoulder or Buttons.LeftShoulder or Buttons.RightTrigger or Buttons.LeftTrigger)
+        {
+            rotateMenu();
         }
     }
     
