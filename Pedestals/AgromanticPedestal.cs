@@ -151,10 +151,20 @@ public class AgromanticPedestal : ItemPedestal
 
     public override void draw(SpriteBatch b, int x, int y, float alpha = 1f)
     {
-        Vector2 position = new Vector2(x * 64, y * 64);
+        Vector2 position = new Vector2(x * 64,
+            y * 64);
         ParsedItemData itemData = ItemRegistry.GetDataOrErrorItem(QualifiedItemId);
         itemData.LoadTextureIfNeeded();
-        b.Draw(itemData.Texture, Game1.GlobalToLocal(Game1.viewport, position), itemData.GetSourceRect(0, 0), Color.White, 0f, new Vector2(0f, 16f), 4f, SpriteEffects.None, Math.Max(0f, (position.Y - 2f) / 10000f));
+        b.Draw(
+            texture: itemData.Texture,
+            position: Game1.GlobalToLocal(Game1.viewport, position), sourceRectangle: itemData.GetSourceRect(),
+            color: Color.White,
+            rotation: 0f,
+            origin: new Vector2(0f, 16f),
+            scale: 4f,
+            effects: SpriteEffects.None,
+            layerDepth: Math.Max(0f, (position.Y - 2f) / 10000f)
+        );
         
         // if (__instance.match.Value)
         // {
@@ -167,7 +177,8 @@ public class AgromanticPedestal : ItemPedestal
             {
                 var heldObjectData = ItemRegistry.GetDataOrErrorItem(heldObject.Value.QualifiedItemId);
                 heldObjectData.LoadTextureIfNeeded();
-                Vector2 draw_position = position - new Vector2(-8, 92f);
+                Vector2 draw_position = position - new Vector2(-8,
+                    92f);
                 float yOffset = MathUtility.MultiLerp([0f, -8f, 0f],
                     (float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds % 2000 / 2000);
                 draw_position.Y += yOffset;
@@ -179,14 +190,16 @@ public class AgromanticPedestal : ItemPedestal
 
                 b.Draw(
                     texture: heldObjectData.Texture,
-                    position: Game1.GlobalToLocal(Game1.viewport, draw_position),
+                    position: Game1.GlobalToLocal(Game1.viewport,
+                        draw_position),
                     sourceRectangle: heldObjectData.GetSourceRect(),
                     color: Color.White,
                     rotation: 0f,
                     origin: Vector2.Zero,
                     scale: 3f,
                     effects: SpriteEffects.None,
-                    layerDepth: Math.Max(0f, (position.Y - 1f) / 10000f)
+                    layerDepth: Math.Max(0f,
+                        (position.Y - 1f) / 10000f)
                 );
             }
         }
@@ -198,19 +211,27 @@ public class AgromanticPedestal : ItemPedestal
             {
                 return;
             }
-            Vector2 draw_position = position - new Vector2(-8f, 92f);
-            float yOffset = MathUtility.MultiLerp([0f, -8f, 0f], (float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds % 2000 / 2000);
+            Vector2 draw_position = position - new Vector2(-8f,
+                92f);
+            float yOffset = MathUtility.MultiLerp([
+                    0f,
+                    -8f,
+                    0f
+                ],
+                (float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds % 2000 / 2000);
             draw_position.Y += yOffset;
             b.Draw(
                 texture: requiredItemData.Texture,
-                position: Game1.GlobalToLocal(Game1.viewport, draw_position),
+                position: Game1.GlobalToLocal(Game1.viewport,
+                    draw_position),
                 sourceRectangle: requiredItemData.GetSourceRect(),
                 color: Color.White * 0.35f,
                 rotation: 0f,
                 origin: Vector2.Zero,
                 scale: 3f,
                 effects: SpriteEffects.None,
-                layerDepth: Math.Max(0f, (position.Y - 1f) / 10000f)
+                layerDepth: Math.Max(0f,
+                    (position.Y - 1f) / 10000f)
             );
 
             Rectangle? qualitySourceRect = minimumQuality.Value switch
@@ -223,14 +244,18 @@ public class AgromanticPedestal : ItemPedestal
             
             b.Draw(
                 texture: Game1.mouseCursors,
-                position: Game1.GlobalToLocal(Game1.viewport, draw_position + new Vector2(32, 32)),
+                position: Game1.GlobalToLocal(Game1.viewport,
+                    draw_position +
+                    new Vector2(32,
+                        32)),
                 sourceRectangle: qualitySourceRect,
                 color: Color.White,
                 rotation: 0f,
                 origin: Vector2.Zero,
                 scale: 2f,
                 effects: SpriteEffects.None,
-                layerDepth: Math.Max(0f, (position.Y) / 10000f)
+                layerDepth: Math.Max(0f,
+                    (position.Y) / 10000f)
             );
         }
     }

@@ -192,7 +192,7 @@ namespace Agromancy
                         DisplayName = "Agromantic Pedestal", // TODO: i18n
                         Description = "A pedestal meant to surround an altar for the initiation of agromantic rituals.", // TODO: i18n
                         Texture = $"{UNIQUE_ID}/Pedestals",
-                        SpriteIndex = 0,
+                        SpriteIndex = 2,
                     };
                     data[$"{UNIQUE_ID}_Altar"] = new BigCraftableData()
                     {
@@ -200,7 +200,7 @@ namespace Agromancy
                         DisplayName = "Agromantic Altar", // TODO: i18n
                         Description = "A pedestal for placing an essence vial upon for agromantic rituals.", // TODO: i18n
                         Texture = $"{UNIQUE_ID}/Pedestals",
-                        SpriteIndex = 1,
+                        SpriteIndex = 3,
                         CustomFields = new Dictionary<string, string>()
                         {
                             { UNIQUE_ID, $"(O){UNIQUE_ID}_T1EssenceVial" },

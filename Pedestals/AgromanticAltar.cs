@@ -154,7 +154,8 @@ public class AgromanticAltar : AgromanticPedestal
             origin: new Vector2(0f, 16f),
             scale: 4f,
             effects: SpriteEffects.None,
-            layerDepth: Math.Max(0f, (position.Y - 2f) / 10000f));
+            layerDepth: Math.Max(0f, (position.Y - 2f) / 10000f)
+        );
         
         // if (__instance.match.Value)
         // {
