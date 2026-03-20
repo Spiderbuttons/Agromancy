@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 using Agromancy.Helpers;
+using Agromancy.Models;
 using Agromancy.Patches;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -39,12 +40,17 @@ public class AgromanticAltar : AgromanticPedestal
     public override void updateWhenCurrentLocation(GameTime time)
     {
         base.updateWhenCurrentLocation(time);
+        
         var pedestals = getSurroundingPedestals();
         if (pedestals.Count < 4 && heldObject.Value == null) locked.Value = true;
         else locked.Value = false;
-        puffTimer.Value += time.ElapsedGameTime.Milliseconds;
-        if (isInRitual.Value) suckTimer.Value += time.ElapsedGameTime.Milliseconds;
-        else suckTimer.Value = 0;
+        if (Game1.IsMasterGame)
+        {
+            puffTimer.Value += time.ElapsedGameTime.Milliseconds;
+            if (isInRitual.Value) suckTimer.Value += time.ElapsedGameTime.Milliseconds;
+            else suckTimer.Value = 0;
+        }
+
         if (puffTimer.Value >= 250f || (isInRitual.Value && puffTimer.Value >= 100))
         {
             puffTimer.Value = 0;
@@ -56,7 +62,7 @@ public class AgromanticAltar : AgromanticPedestal
                     Vector2 pedSpot = ped.TileLocation - new Vector2(-0.25f, 1.25f);
                     Vector2 directionToPedestal = TileLocation - new Vector2(-0.5f, 1.25f) - pedSpot;
                     Vector2 puffVelocity = directionToPedestal * 0.75f;
-                    Location?.temporarySprites.Add(new TemporaryAnimatedSprite("LooseSprites\\Cursors",
+                    Game1.Multiplayer.broadcastSprites(Location, new TemporaryAnimatedSprite("LooseSprites\\Cursors",
                         new Rectangle(372, 1956, 10, 10), pedSpot * 64f, flipped: false, 0.003f,
                         Utility.GetPrismaticColor())
                     {
@@ -77,15 +83,16 @@ public class AgromanticAltar : AgromanticPedestal
         if (suckedPed is not null)
         {
             suckedPed.isJittering.Value = true;
-            if (suckTimer.Value > 1500)
+            if (suckTimer.Value > 1500 && Game1.IsMasterGame)
             {
                 suckTimer.Value = 0;
                 suckedPed.hideObject.Value = true;
                 Location?.playSound("throw", TileLocation);
                 Location?.playSound("breakingGlass", TileLocation);
+                TemporaryAnimatedSprite[] spritesToBroadcast = new TemporaryAnimatedSprite[3];
                 for (int i = 0; i < 3; i++)
                 {
-                    Location?.temporarySprites.Add(new TemporaryAnimatedSprite("LooseSprites\\Cursors",
+                    spritesToBroadcast[i] = new TemporaryAnimatedSprite("LooseSprites\\Cursors",
                         new Rectangle(372, 1956, 10, 10), suckedPed.TileLocation * 64f - new Vector2(-8, 92f),
                         flipped: false, 0.003f,
                         Color.WhiteSmoke)
@@ -101,10 +108,11 @@ public class AgromanticAltar : AgromanticPedestal
                         scale = 4f,
                         scaleChange = -0.03f,
                         rotationChange = Game1.random.Next(-5, 6) * (float)Math.PI / 256f
-                    });
+                    };
                 }
+                Game1.Multiplayer.broadcastSprites(Location, spritesToBroadcast);
             }
-        } else if (isInRitual.Value && suckTimer.Value > 1500)
+        } else if (isInRitual.Value && suckTimer.Value > 1250 * Location?.farmers.Count)
         {
             suckTimer.Value = 0;
             stopRitual();
@@ -134,6 +142,7 @@ public class AgromanticAltar : AgromanticPedestal
         {
             ped.setRequiredItems(cropList.OrderBy(_ => Guid.NewGuid()).ToList());
             ped.setMinimumQualityRequired(requiredQuality);
+            ped.minimumQuality.Value = requiredQuality;
             ped.isReadyForRitual.Value = true;
             ped.locked.Value = false;
             ped.isInRitual.Value = false;
@@ -343,9 +352,11 @@ public class AgromanticAltar : AgromanticPedestal
         isInRitual.Value = false;
         isReadyForRitual.Value = false;
         isJittering.Value = false;
-        Game1.flashAlpha = 0.5f;
-        Utility.drawLightningBolt((TileLocation + new Vector2(0.5f, -1.35f)) * 64f, Location);
-        Location?.playSound("thunder");
+        if (Game1.IsMasterGame)
+        {
+            lightningStrike();
+            Agromancy.ModHelper.Multiplayer.SendMessage(new RitualFinishInfo(Location?.NameOrUniqueName, TileLocation), "RitualFinish");
+        }
         foreach (var ped in getSurroundingPedestals())
         {
             ped.isInRitual.Value = false;
@@ -373,9 +384,11 @@ public class AgromanticAltar : AgromanticPedestal
         UpdateItemMatch();
     }
 
-    public void setPedestalJittering(int pedIndex)
+    public void lightningStrike()
     {
-        getSurroundingPedestals()[pedIndex].isJittering.Value = true;
+        Game1.flashAlpha = 0.5f;
+        Utility.drawLightningBolt((TileLocation + new Vector2(0.5f, -1.35f)) * 64f, Location);
+        Game1.playSound("thunder");
     }
 
     public override bool performObjectDropInAction(Item dropInItem, bool probe, Farmer who, bool returnFalseIfItemConsumed = false)

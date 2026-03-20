@@ -97,6 +97,7 @@ namespace Agromancy
             Helper.Events.Display.RenderedWorld += OnRenderedWorld;
             Helper.Events.Display.MenuChanged += OnMenuChanged;
             Helper.Events.Content.AssetRequested += OnAssetsRequested;
+            Helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
         }
 
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -114,6 +115,19 @@ namespace Agromancy
             CropManager = new CropManager();
         }
 
+        private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
+        {
+            if (!e.FromModID.Equals(UNIQUE_ID)) return;
+
+            var info = e.ReadAs<RitualFinishInfo>();
+            if (Game1.currentLocation is null || !Game1.currentLocation.NameOrUniqueName.Equals(info.Location)) return;
+            var ped = Game1.currentLocation.getObjectAtTile((int)info.TilePosition.X, (int)info.TilePosition.Y);
+            if (ped is AgromanticAltar altar)
+            {
+                altar.lightningStrike();
+            }
+        }
+
         private void OnAssetsRequested(object? sender, AssetRequestedEventArgs e)
         {
             if (e.NameWithoutLocale.IsEquivalentTo("Data/Objects"))
@@ -125,7 +139,7 @@ namespace Agromancy
                     {
                         Name = $"{UNIQUE_ID}_T1EssenceVial",
                         DisplayName = "Tier 1 Essence Vial", // TODO: i18n
-                        Description = "A capsule capable of storing and infusing a small amount of magical essence. Can be upgraded at an Agromantic Altar.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
+                        Description = "A capsule capable of infusing a small amount of magical essence. Can be upgraded at an Agromantic Altar with summer crops.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
                         Type = "Basic",
                         Category = 0,
                         Price = 100,
@@ -136,7 +150,7 @@ namespace Agromancy
                     {
                         Name = $"{UNIQUE_ID}_T2EssenceVial",
                         DisplayName = "Tier 2 Essence Vial", // TODO: i18n
-                        Description = "A capsule capable of storing and infusing a large amount of magical essence.Can be upgraded at an Agromantic Altar.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
+                        Description = "A capsule capable of infusing a large amount of magical essence. Can be upgraded at an Agromantic Altar with fall crops.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
                         Type = "Basic",
                         Category = 0,
                         Price = 100,
@@ -147,7 +161,7 @@ namespace Agromancy
                     {
                         Name = $"{UNIQUE_ID}_T3EssenceVial",
                         DisplayName = "Tier 3 Essence Vial", // TODO: i18n
-                        Description = "A capsule capable of storing and infusing a seemingly limitless amount of magical essence.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
+                        Description = "A capsule capable of infusing a seemingly limitless amount of magical essence.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
                         Type = "Basic",
                         Category = 0,
                         Price = 100,
