@@ -15,14 +15,18 @@ namespace Agromancy.Pedestals;
 [XmlType("Mods_Spiderbuttons.Agromancy_AgromanticPedestal")]
 public class AgromanticPedestal : ItemPedestal
 {
-    public string[] requiredItems;
+    public NetStringList requiredItems = [];
+    public NetInt minimumQuality = new(0);
     protected int currentlyShownItemIndex;
     protected int lastItemUpdate;
 
-    public int vialTier = -1;
-
     public NetBool isInRitual = new(false);
     public NetBool isReadyForRitual = new(false);
+    public NetBool isJittering = new(false);
+    public NetBool hideObject = new(false);
+
+    public static Rectangle silverStarSourceRect = new Rectangle(338, 400, 8, 8);
+    public static Rectangle goldStarSourceRect = new Rectangle(346, 400, 8, 8);
 
     public AgromanticPedestal(Vector2 tile,
         StardewValley.Object? requiredItem,
@@ -36,20 +40,22 @@ public class AgromanticPedestal : ItemPedestal
     public AgromanticPedestal(Vector2 tile, IEnumerable<string>? requiredItemIds, bool lockOnSuccess, Color successColor,
         string itemId) : base(tile, null, lockOnSuccess, successColor, itemId)
     {
-       requiredItems = requiredItemIds is null ? [] : requiredItemIds.ToArray();
+       if (requiredItemIds is not null)
+       {
+           requiredItems.AddRange(requiredItemIds);
+       }
        Random rng = new Random(Game1.hash.GetDeterministicHashCode(tile.ToString()));
-       currentlyShownItemIndex = rng.Next(0, requiredItems.Length);
+       currentlyShownItemIndex = rng.Next(0, requiredItems.Count);
     }
 
     public AgromanticPedestal() : base()
     {
-        requiredItems = [];
     }
     
     public override void UpdateItemMatch()
     {
         bool success = false;
-        if (heldObject.Value != null && requiredItems.Length > 0 && requiredItems.Contains(heldObject.Value.QualifiedItemId))
+        if (heldObject.Value != null && heldObject.Value.Quality >= minimumQuality.Value && requiredItems.Count > 0 && requiredItems.Contains(heldObject.Value.QualifiedItemId))
         {
             success = true;
         }
@@ -61,16 +67,25 @@ public class AgromanticPedestal : ItemPedestal
         }
     }
 
+    public override bool performToolAction(Tool t)
+    {
+        if (isInRitual.Value)
+        {
+            return false;
+        }
+        return base.performToolAction(t);
+    }
+
     public override void updateWhenCurrentLocation(GameTime time)
     {
         if (isInRitual.Value) locked.Value = true;
         base.updateWhenCurrentLocation(time);
-        if (requiredItems.Length > 0 && time.TotalGameTime.Seconds != lastItemUpdate)
+        if (requiredItems.Count > 0 && time.TotalGameTime.Seconds != lastItemUpdate)
         {
             currentlyShownItemIndex++;
-            if (currentlyShownItemIndex >= requiredItems.Length) currentlyShownItemIndex = 0;
+            if (currentlyShownItemIndex >= requiredItems.Count) currentlyShownItemIndex = 0;
             lastItemUpdate = time.TotalGameTime.Seconds;
-        }
+        } else if (requiredItems.Count <= 0) currentlyShownItemIndex = 0;
     }
 
     public override void performRemoveAction()
@@ -89,7 +104,7 @@ public class AgromanticPedestal : ItemPedestal
         {
             foreach (var ped in altar.getSurroundingPedestals())
             {
-                ped.setRequiredItems([], -1);
+                ped.setRequiredItems([]);
             }
         }
 
@@ -98,14 +113,20 @@ public class AgromanticPedestal : ItemPedestal
 
     public override bool onExplosion(Farmer who)
     {
-        if (isInRitual.Value || requiredItems.Length > 0) return false;
+        if (isInRitual.Value || requiredItems.Count > 0) return false;
         return base.onExplosion(who);
     }
 
-    public void setRequiredItems(IEnumerable<string> newRequiredItems, int tier)
+    public void setRequiredItems(IEnumerable<string> newRequiredItems)
     {
-        requiredItems = newRequiredItems.ToArray();
-        vialTier = tier;
+        requiredItems.Clear();
+        requiredItems.AddRange(newRequiredItems);
+    }
+
+    public void setMinimumQualityRequired(int minQuality)
+    {
+        if (minQuality == 3) minQuality = 4;
+        minimumQuality.Value = minQuality;
     }
 
     public static Item chooseRandomCrop(Season? season = null)
@@ -122,7 +143,7 @@ public class AgromanticPedestal : ItemPedestal
         possibleCrops.AddRange(
             from cropData in Game1.cropData.Values
             where season is null || cropData.Seasons.Contains(season.Value)
-            select cropData.HarvestItemId
+            select ItemRegistry.QualifyItemId(cropData.HarvestItemId)
         );
         
         return possibleCrops;
@@ -142,26 +163,36 @@ public class AgromanticPedestal : ItemPedestal
         
         if (heldObject.Value != null)
         {
-            var heldObjectData = ItemRegistry.GetDataOrErrorItem(heldObject.Value.QualifiedItemId);
-            heldObjectData.LoadTextureIfNeeded();
-            Vector2 draw_position = position - new Vector2(-8, 92f);
-            float yOffset = MathUtility.MultiLerp([0f, -8f, 0f], (float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds % 2000 / 2000);
-            draw_position.Y += yOffset;
-            b.Draw(
-                texture: heldObjectData.Texture,
-                position: Game1.GlobalToLocal(Game1.viewport, draw_position),
-                sourceRectangle: heldObjectData.GetSourceRect(),
-                color: Color.White,
-                rotation: 0f,
-                origin: Vector2.Zero,
-                scale: 3f,
-                effects: SpriteEffects.None,
-                layerDepth: Math.Max(0f, (position.Y - 1f) / 10000f)
-            );
+            if (!hideObject.Value)
+            {
+                var heldObjectData = ItemRegistry.GetDataOrErrorItem(heldObject.Value.QualifiedItemId);
+                heldObjectData.LoadTextureIfNeeded();
+                Vector2 draw_position = position - new Vector2(-8, 92f);
+                float yOffset = MathUtility.MultiLerp([0f, -8f, 0f],
+                    (float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds % 2000 / 2000);
+                draw_position.Y += yOffset;
+                if (isJittering.Value)
+                {
+                    draw_position += new Vector2((float)(Game1.random.NextDouble() - 0.5) * 4f,
+                        (float)(Game1.random.NextDouble() - 0.5) * 4f);
+                }
+
+                b.Draw(
+                    texture: heldObjectData.Texture,
+                    position: Game1.GlobalToLocal(Game1.viewport, draw_position),
+                    sourceRectangle: heldObjectData.GetSourceRect(),
+                    color: Color.White,
+                    rotation: 0f,
+                    origin: Vector2.Zero,
+                    scale: 3f,
+                    effects: SpriteEffects.None,
+                    layerDepth: Math.Max(0f, (position.Y - 1f) / 10000f)
+                );
+            }
         }
-        else if (requiredItems.Length > 0)
+        else if (requiredItems.Count > 0)
         {
-            var requiredItemData = ItemRegistry.GetDataOrErrorItem(requiredItems[currentlyShownItemIndex]);
+            var requiredItemData = ItemRegistry.GetDataOrErrorItem(requiredItems[currentlyShownItemIndex < requiredItems.Count ? currentlyShownItemIndex : 0]);
             requiredItemData.LoadTextureIfNeeded();
             if (requiredItemData.Texture is null) // This used to happen somehow before I added the LoadTextureIfNeeded() call, so I'm keeping it just in case.
             {
@@ -180,6 +211,26 @@ public class AgromanticPedestal : ItemPedestal
                 scale: 3f,
                 effects: SpriteEffects.None,
                 layerDepth: Math.Max(0f, (position.Y - 1f) / 10000f)
+            );
+
+            Rectangle? qualitySourceRect = minimumQuality.Value switch
+            {
+                1 => silverStarSourceRect,
+                2 => goldStarSourceRect,
+                _ => null
+            };
+            if (qualitySourceRect is null) return;
+            
+            b.Draw(
+                texture: Game1.mouseCursors,
+                position: Game1.GlobalToLocal(Game1.viewport, draw_position + new Vector2(32, 32)),
+                sourceRectangle: qualitySourceRect,
+                color: Color.White,
+                rotation: 0f,
+                origin: Vector2.Zero,
+                scale: 2f,
+                effects: SpriteEffects.None,
+                layerDepth: Math.Max(0f, (position.Y) / 10000f)
             );
         }
     }
@@ -213,8 +264,11 @@ public class AgromanticPedestal : ItemPedestal
     public override void initNetFields()
     {
         base.initNetFields();
+        NetFields.AddField(requiredItems);
         NetFields.AddField(isInRitual);
         NetFields.AddField(isReadyForRitual);
+        NetFields.AddField(isJittering);
+        NetFields.AddField(hideObject);
     }
 
     public override Item GetOneNew()

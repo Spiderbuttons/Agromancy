@@ -273,6 +273,8 @@ public partial class AgrometerMenu : IClickableMenu
 
     private bool canVialTierHoldEssence(int essenceIdx)
     {
+        return true;
+        
         var vial = GetEssenceVial();
         if (vial is null) return false;
         

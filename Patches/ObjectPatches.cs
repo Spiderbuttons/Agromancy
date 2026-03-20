@@ -15,8 +15,9 @@ namespace Agromancy.Patches;
 [HarmonyPatch]
 public static class ObjectPatches
 {
-    public static bool IsEssenceVial(this Item obj)
+    public static bool IsEssenceVial(this Item? obj)
     {
+        if (obj is null) return false;
         return obj.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_T1EssenceVial") ||
                obj.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_T2EssenceVial") ||
                obj.QualifiedItemId.Equals($"(O){Agromancy.UNIQUE_ID}_T3EssenceVial");

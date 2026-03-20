@@ -334,10 +334,8 @@ namespace Agromancy
 
             if (e.Button is SButton.F6)
             {
-                // ItemPedestal ped = ItemRegistry.Create<ItemPedestal>("(BC)221");
-                var ped = ItemRegistry.Create<ItemPedestal>("(BC)221");
-                // ped.lockOnSuccess.Value = false;
-                Game1.player.addItemToInventoryBool(ped);
+                // Game1.weatherForTomorrow = "Rain";
+                // Game1.ApplyWeatherForNewDay();
             }
 
             if (e.Button is SButton.F8)
