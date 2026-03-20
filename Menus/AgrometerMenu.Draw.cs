@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
+using StardewValley.TokenizableStrings;
 
 namespace Agromancy.Menus;
 
@@ -70,7 +71,7 @@ public partial class AgrometerMenu
             float distanceFromMouse = Vector2.Distance(new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()), center);
             if (distanceFromMouse < radius)
             {
-                string[] tooltip = GetEssenceTooltip(i).Split(':');
+                string[] tooltip = TokenParser.ParseText(GetEssenceTooltip(i)).Split(':');
                 drawHoverText(b, tooltip[1], Game1.smallFont, boldTitleText: tooltip[0]);
                 break;
             }

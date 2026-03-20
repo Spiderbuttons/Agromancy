@@ -9,6 +9,7 @@ using Netcode;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Objects;
+using StardewValley.TokenizableStrings;
 
 namespace Agromancy.Pedestals;
 
@@ -277,7 +278,7 @@ public class AgromanticPedestal : ItemPedestal
 
     public override string getCategoryName()
     {
-        return "Agromancy";
+        return TokenParser.ParseText(Agromancy.TKString("Agromancy"));
     }
 
     public override bool performObjectDropInAction(Item dropInItem, bool probe, Farmer who, bool returnFalseIfItemConsumed = false)

@@ -38,7 +38,9 @@ public static class FarmerPatches
             if (!__instance.hasOrWillReceiveMail($"{Agromancy.UNIQUE_ID}_FoundAgrometer"))
             {
                 __instance.mailReceived.Add($"{Agromancy.UNIQUE_ID}_FoundAgrometer");
-                __instance.holdUpItemWithCustomMessage(item, ["You found an Agrometer! It looks like there's something attached...", "Why don't you take a look at your crops with it?"]);
+                __instance.craftingRecipes.TryAdd($"{Agromancy.UNIQUE_ID}_Pedestal_Recipe", 0);
+                __instance.craftingRecipes.TryAdd($"{Agromancy.UNIQUE_ID}_Altar_Recipe", 0);
+                __instance.holdUpItemWithCustomMessage(item, [Agromancy.TKString("FoundAgrometer_One"), Agromancy.TKString("FoundAgrometer_Two")]);
             }
         });
     }

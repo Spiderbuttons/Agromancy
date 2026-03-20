@@ -93,7 +93,6 @@ public class CropManager
         // essences.Mutate(range: 5, positiveOnly: true); // TODO: Config option to allow negative mutations.
         
         /* Quality */
-        
         // We don't need to raise the quality on seeds, which may end up being the "harvest" here due to the SpaceCore compatibility I did.
         if (GetCropReferenceBySeedId(harvest.QualifiedItemId) is not null) goto water;
         
@@ -222,6 +221,8 @@ public class CropManager
 
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
+        if (!Game1.IsMasterGame) return;
+        
         Utility.ForEachCrop(crop =>
         {
             if (crop.indexOfHarvest.Value is null || crop.dead.Value || crop.fullyGrown.Value) return true;
@@ -243,6 +244,8 @@ public class CropManager
 
     private void OnInventoryChanged(object? sender, InventoryChangedEventArgs e)
     {
+        if (!e.IsLocalPlayer) return;
+        
         EnsureLookups();
         foreach (var item in e.Added)
         {

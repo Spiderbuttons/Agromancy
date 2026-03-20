@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -19,6 +20,7 @@ using Agromancy.Models;
 using Agromancy.Pedestals;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using StardewValley.GameData.BigCraftables;
 using StardewValley.GameData.Buffs;
 using StardewValley.GameData.Crops;
@@ -39,8 +41,6 @@ namespace Agromancy
         private static CommandHandler CommandHandler { get; set; } = null!;
         internal static ModConfig Config { get; set; } = null!;
         internal static Harmony Harmony { get; set; } = null!;
-
-        internal static Texture2D? ScreenTexture { get; set; } = null!;
         
         internal static Texture2D PerlinNoise { get; set; } = null!;
 
@@ -94,6 +94,7 @@ namespace Agromancy
 
             Helper.Events.Input.ButtonPressed += OnButtonPressed;
             Helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            Helper.Events.GameLoop.DayStarted += OnDayStarted;
             Helper.Events.Display.RenderedWorld += OnRenderedWorld;
             Helper.Events.Display.MenuChanged += OnMenuChanged;
             Helper.Events.Content.AssetRequested += OnAssetsRequested;
@@ -113,6 +114,15 @@ namespace Agromancy
             }
             
             CropManager = new CropManager();
+        }
+
+        private void OnDayStarted(object? sender, DayStartedEventArgs e)
+        {
+            if (Game1.player.mailReceived.Contains($"{UNIQUE_ID}_FoundAgrometer"))
+            {
+                Game1.player.craftingRecipes.TryAdd($"{UNIQUE_ID}_Pedestal_Recipe", 0);
+                Game1.player.craftingRecipes.TryAdd($"{UNIQUE_ID}_Altar_Recipe", 0);
+            }
         }
 
         private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
@@ -135,33 +145,57 @@ namespace Agromancy
                 e.Edit(asset =>
                 {
                     var data = asset.AsDictionary<string, ObjectData>().Data;
-                    data[$"{UNIQUE_ID}_T1EssenceVial"] = new ObjectData()
+                    data[$"{UNIQUE_ID}_T1EssenceVial"] = new ObjectData
                     {
                         Name = $"{UNIQUE_ID}_T1EssenceVial",
-                        DisplayName = "Tier 1 Essence Vial", // TODO: i18n
-                        Description = "A capsule capable of infusing a small amount of magical essence. Can be upgraded at an Agromantic Altar with summer crops.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
+                        DisplayName = $"{TKString("Tier1")} {TKString("EssenceVial_Name")}",
+                        Description = 
+                            $"{TKString("EssenceVial_Description_T1")}\n\n" +
+                            $"{TKString("ContainsEssence")}\n- " +
+                            "{0} " + $"{TKString("Yield")}\n- " +
+                            "{1} " + $"{TKString("Quality")}\n- " +
+                            "{2} " + $"{TKString("Growth")}\n- " +
+                            "{3} " + $"{TKString("Giant")}\n- " +
+                            "{4} " + $"{TKString("Retention")}\n- " +
+                            "{5} " + $"{TKString("Seed")}",
                         Type = "Basic",
                         Category = 0,
                         Price = 100,
                         Texture = $"{UNIQUE_ID}/Objects",
                         SpriteIndex = 0,
                     };
-                    data[$"{UNIQUE_ID}_T2EssenceVial"] = new ObjectData()
+                    data[$"{UNIQUE_ID}_T2EssenceVial"] = new ObjectData
                     {
                         Name = $"{UNIQUE_ID}_T2EssenceVial",
-                        DisplayName = "Tier 2 Essence Vial", // TODO: i18n
-                        Description = "A capsule capable of infusing a large amount of magical essence. Can be upgraded at an Agromantic Altar with fall crops.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
+                        DisplayName = $"{TKString("Tier2")} {TKString("EssenceVial_Name")}",
+                        Description = 
+                            $"{TKString("EssenceVial_Description_T2")}\n\n" +
+                            $"{TKString("ContainsEssence")}\n- " +
+                            "{0} " + $"{TKString("Yield")}\n- " +
+                            "{1} " + $"{TKString("Quality")}\n- " +
+                            "{2} " + $"{TKString("Growth")}\n- " +
+                            "{3} " + $"{TKString("Giant")}\n- " +
+                            "{4} " + $"{TKString("Retention")}\n- " +
+                            "{5} " + $"{TKString("Seed")}",
                         Type = "Basic",
                         Category = 0,
                         Price = 100,
                         Texture = $"{UNIQUE_ID}/Objects",
                         SpriteIndex = 1,
                     };
-                    data[$"{UNIQUE_ID}_T3EssenceVial"] = new ObjectData()
+                    data[$"{UNIQUE_ID}_T3EssenceVial"] = new ObjectData
                     {
                         Name = $"{UNIQUE_ID}_T3EssenceVial",
-                        DisplayName = "Tier 3 Essence Vial", // TODO: i18n
-                        Description = "A capsule capable of infusing a seemingly limitless amount of magical essence.\n\nContains {6} essence.\n- {0} Yield\n- {1} Quality\n- {2} Growth\n- {3} Giant\n- {4} Water\n- {5} Seed", // TODO: i18n
+                        DisplayName = $"{TKString("Tier3")} {TKString("EssenceVial_Name")}",
+                        Description = 
+                            $"{TKString("EssenceVial_Description_T3")}\n\n" +
+                            $"{TKString("ContainsEssence")}\n- " +
+                            "{0} " + $"{TKString("Yield")}\n- " +
+                            "{1} " + $"{TKString("Quality")}\n- " +
+                            "{2} " + $"{TKString("Growth")}\n- " +
+                            "{3} " + $"{TKString("Giant")}\n- " +
+                            "{4} " + $"{TKString("Retention")}\n- " +
+                            "{5} " + $"{TKString("Seed")}",
                         Type = "Basic",
                         Category = 0,
                         Price = 100,
@@ -176,17 +210,17 @@ namespace Agromancy
                 e.Edit(asset =>
                 {
                     var data = asset.AsDictionary<string, ToolData>().Data;
-                    data[$"{UNIQUE_ID}_Agrometer"] = new ToolData()
+                    data[$"{UNIQUE_ID}_Agrometer"] = new ToolData
                     {
                         ClassName = "GenericTool",
                         Name = $"{UNIQUE_ID}_Agrometer",
-                        DisplayName = "Agrometer", // TODO: i18n
-                        Description = "A magical tool that allows you to visualize the magical essences of your crops.", // TODO: i18n
+                        DisplayName = TKString("Agrometer_Name"),
+                        Description = TKString("Agrometer_Description"),
                         Texture = $"{UNIQUE_ID}/Objects",
                         SpriteIndex = 3,
                         AttachmentSlots = 1,
                         CanBeLostOnDeath = false,
-                        SetProperties = new Dictionary<string, string>()
+                        SetProperties = new Dictionary<string, string>
                         {
                             { "InstantUse", "true" },
                             { "IsEfficient", "true" }
@@ -200,27 +234,141 @@ namespace Agromancy
                 e.Edit(asset =>
                 {
                     var data = asset.AsDictionary<string, BigCraftableData>().Data;
-                    data[$"{UNIQUE_ID}_Pedestal"] = new BigCraftableData()
+                    data[$"{UNIQUE_ID}_Pedestal"] = new BigCraftableData
                     {
                         Name = $"{UNIQUE_ID}_Pedestal",
-                        DisplayName = "Agromantic Pedestal", // TODO: i18n
-                        Description = "A pedestal meant to surround an altar for the initiation of agromantic rituals.", // TODO: i18n
+                        DisplayName = TKString("Pedestal_Name"),
+                        Description = TKString("Pedestal_Description"),
                         Texture = $"{UNIQUE_ID}/Pedestals",
                         SpriteIndex = 2,
                     };
-                    data[$"{UNIQUE_ID}_Altar"] = new BigCraftableData()
+                    data[$"{UNIQUE_ID}_Altar"] = new BigCraftableData
                     {
                         Name = $"{UNIQUE_ID}_Altar",
-                        DisplayName = "Agromantic Altar", // TODO: i18n
-                        Description = "A pedestal for placing an essence vial upon for agromantic rituals.", // TODO: i18n
+                        DisplayName = TKString("Altar_Name"),
+                        Description = TKString("Altar_Description"),
                         Texture = $"{UNIQUE_ID}/Pedestals",
                         SpriteIndex = 3,
-                        CustomFields = new Dictionary<string, string>()
-                        {
-                            { UNIQUE_ID, $"(O){UNIQUE_ID}_T1EssenceVial" },
-                        }
                     };
                 });
+            }
+
+            if (e.NameWithoutLocale.IsEquivalentTo("Data/CraftingRecipes"))
+            {
+                e.Edit(asset =>
+                {
+                    var data = asset.AsDictionary<string, string>().Data;
+                    data[$"{UNIQUE_ID}_Pedestal_Recipe"] = $"1 1/Unused/1/true/Unused/{TKString("Pedestal_Name")}";
+                    data[$"{UNIQUE_ID}_Altar_Recipe"] = $"1 1/Unused/1/true/Unused/{TKString("Altar_Name")}";
+                });
+            } else if (e.NameWithoutLocale.IsEquivalentTo("spacechase0.SpaceCore/CraftingRecipeOverrides"))
+            {
+                e.Edit(asset =>
+                {
+                    if (asset.Data is not IDictionary data) return;
+                    var valueType = asset.DataType.GetGenericArguments()[1];
+                    JObject pedRecipe = new JObject
+                    {
+                        ["Ingredients"] = new JArray
+                        {
+                            new JObject
+                            {
+                                ["Type"] = "Item",
+                                ["Value"] = "(O)390",
+                                ["Amount"] = 10
+                            },
+                            new JObject
+                            {
+                                ["Type"] = "ContextTag",
+                                ["Value"] = "agromantic_seed",
+                                ["Amount"] = 5,
+                                ["ContextTagsRequireAll"] = true,
+                                ["OverrideText"] = TKString("Seed"),
+                                ["OverrideTexturePath"] = "Maps/springobjects",
+                                ["OverrideTextureRect"] = new JObject
+                                {
+                                    ["X"] = 240,
+                                    ["Y"] = 16,
+                                    ["Width"] = 16,
+                                    ["Height"] = 16,
+                                }
+                            }
+                        },
+                        ["ProductQualifiedId"] = $"(BC){UNIQUE_ID}_Pedestal",
+                        ["ProductAmount"] = 1
+                    };
+                    JObject altarRecipe = new JObject
+                    {
+                        ["Ingredients"] = new JArray
+                        {
+                            new JObject
+                            {
+                                ["Type"] = "Item",
+                                ["Value"] = "(O)390",
+                                ["Amount"] = 10
+                            },
+                            new JObject
+                            {
+                                ["Type"] = "Item",
+                                ["Value"] = "(O)771",
+                                ["Amount"] = 5,
+                            },
+                            new JObject
+                            {
+                                ["Type"] = "ContextTag",
+                                ["Value"] = "agromantic_crop, quality_gold",
+                                ["Amount"] = 5,
+                                ["ContextTagsRequireAll"] = true,
+                                ["OverrideText"] = TKString("GoldCrops"),
+                                ["OverrideTexturePath"] = "Maps/springobjects",
+                                ["OverrideTextureRect"] = new JObject
+                                {
+                                    ["X"] = 144,
+                                    ["Y"] = 240,
+                                    ["Width"] = 16,
+                                    ["Height"] = 16,
+                                }
+                            }
+                        },
+                        ["ProductQualifiedId"] = $"(BC){UNIQUE_ID}_Altar",
+                        ["ProductAmount"] = 1
+                    };
+                    data[$"{UNIQUE_ID}_Pedestal_Recipe"] = pedRecipe.ToObject(valueType);
+                    data[$"{UNIQUE_ID}_Altar_Recipe"] = altarRecipe.ToObject(valueType);
+                });
+            }
+
+            if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/Strings"))
+            {
+                e.LoadFrom(() =>
+                {
+                    return ModHelper.ModContent.Load<Dictionary<string, string>>(Path.Combine("i18n", "default.json"));
+                    
+                    return new Dictionary<string, string>
+                    {
+                        ["Agromancy"] = i18n.Agromancy(),
+                        ["Pedestal_Name"] = i18n.PedestalName(),
+                        ["Pedestal_Description"] = i18n.PedestalDescription(),
+                        ["Altar_Name"] = i18n.AltarName(),
+                        ["Altar_Description"] = i18n.AltarDescription(),
+                        ["Agrometer_Name"] = i18n.AgrometerName(),
+                        ["Agrometer_Description"] = i18n.AgrometerDescription(),
+                        ["Tier1"] = i18n.Tier1(),
+                        ["Tier2"] = i18n.Tier2(),
+                        ["Tier3"] = i18n.Tier3(),
+                        ["EssenceVial_Name"] = i18n.EssenceVialName(),
+                        ["EssenceVial_Description_T1"] = i18n.EssenceVialDescriptionT1(),
+                        ["EssenceVial_Description_T2"] = i18n.EssenceVialDescriptionT2(),
+                        ["EssenceVial_Description_T3"] = i18n.EssenceVialDescriptionT3(),
+                        ["ContainsEssence"] = i18n.ContainsEssence(),
+                        ["Yield"] = i18n.Yield(),
+                        ["Quality"] = i18n.Quality(),
+                        ["Growth"] = i18n.Growth(),
+                        ["Giant"] = i18n.Giant(),
+                        ["Retention"] = i18n.Retention(),
+                        ["Seed"] = i18n.Seed(),
+                    };
+                }, AssetLoadPriority.Exclusive);
             }
 
             if (e.NameWithoutLocale.IsEquivalentTo($"{UNIQUE_ID}/Pedestals"))
@@ -339,6 +487,11 @@ namespace Agromancy
             //     effects: SpriteEffects.None,
             //     layerDepth: 0.9f
             // );
+        }
+
+        public static string TKString(string key)
+        {
+            return $"[LocalizedText {UNIQUE_ID}\\Strings:{key}]";
         }
 
         private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)

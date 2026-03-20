@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
+using StardewValley.TokenizableStrings;
 
 namespace Agromancy.Patches;
 
@@ -25,6 +26,26 @@ public static class ToolPatches
         if (__instance.IsAgrometer())
         {
             __result = o.IsEssenceVial();
+        }
+    }
+    
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Tool), nameof(Tool.getCategoryName))]
+    public static void getCategoryName_Postfix(Tool __instance, ref string __result)
+    {
+        if (__instance.IsAgrometer())
+        {
+            __result = TokenParser.ParseText(Agromancy.TKString("Agromancy"));
+        }
+    }
+    
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Tool), nameof(Tool.getCategoryColor))]
+    public static void getCategoryName_Postfix(Tool __instance, ref Color __result)
+    {
+        if (__instance.IsAgrometer())
+        {
+            __result = Utility.GetPrismaticColor();
         }
     }
     

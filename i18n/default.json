@@ -1,3 +1,43 @@
 ﻿{
-  "Key": "Value"
+  "Agromancy": "Agromancy",
+  
+  "Pedestal_Name": "Agromantic Pedestal",
+  "Pedestal_Description": "A pedestal meant to surround an altar for the initiation of agromantic rituals.",
+  
+  "Altar_Name": "Agromantic Altar",
+  "Altar_Description": "An altar for placing an essence vial upon for agromantic rituals.",
+  
+  "Agrometer_Name": "Agrometer",
+  "Agrometer_Description": "A magical tool that allows you to visualize, extract, and infuse magical essence.",
+  
+  "Tier1": "Tier 1",
+  "Tier2": "Tier 2",
+  "Tier3": "Tier 3",
+  
+  "EssenceVial_Name": "Essence Vial",
+  "EssenceVial_Description_T1": "A capsule capable of infusing a small amount of magical essence. Can be upgraded at an Agromantic Altar with summer crops.",
+  "EssenceVial_Description_T2": "A capsule capable of infusing a large amount of magical essence. Can be upgraded at an Agromantic Altar with fall crops.",
+  "EssenceVial_Description_T3": "A capsule capable of infusing a seemingly limitless amount of magical essence.",
+
+  "ContainsEssence": "Contains {6} essence.",
+  
+  "Essence": "Essence",
+  "Yield": "Yield",
+  "Quality": "Growth",
+  "Growth": "Growth",
+  "Giant": "Giant",
+  "Retention": "Retention",
+  "Seed": "Seed",
+  
+  "YieldTip": "Chance for extra crops when harvesting.",
+  "QualityTip": "More quality essence leads to higher quality crops.",
+  "GrowthTip": "Speeds up the rate at which crops grow.",
+  "GiantTip": "Increases the odds of becoming a giant crop, if possible.",
+  "RetentionTip": "Higher retention crops use less water.",
+  "SeedTip": "Extra seeds might be dug up when harvesting.",
+  
+  "GoldCrops": "Gold Quality Crops",
+  
+  "FoundAgrometer_One": "You found an Agrometer! It looks like there's something attached...",
+  "FoundAgrometer_Two": "Why don't you take a look at your crops with it?"
 }

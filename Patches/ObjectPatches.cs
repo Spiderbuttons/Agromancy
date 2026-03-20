@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Agromancy.Helpers;
 using Agromancy.Models;
 using HarmonyLib;
@@ -8,6 +9,7 @@ using Newtonsoft.Json;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
+using StardewValley.TokenizableStrings;
 using Object = StardewValley.Object;
 
 namespace Agromancy.Patches;
@@ -33,6 +35,54 @@ public static class ObjectPatches
             var id when id.Equals($"(O){Agromancy.UNIQUE_ID}_T3EssenceVial") => 3,
             _ => -1
         };
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Object), nameof(Object.getCategoryName))]
+    public static void getCategoryName_Postfix(Item __instance, ref string __result)
+    {
+        if (__instance.IsEssenceVial())
+        {
+            __result = TokenParser.ParseText(Agromancy.TKString("Agromancy"));
+        }
+    }
+    
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Object), nameof(Object.getCategoryColor))]
+    public static void getCategoryName_Postfix(Item __instance, ref Color __result)
+    {
+        if (__instance.IsEssenceVial())
+        {
+            __result = Utility.GetPrismaticColor();
+        }
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Object), nameof(Object._PopulateContextTags))]
+    public static void PopulateContextTags_Postfix(Object __instance, HashSet<string> tags)
+    {
+        if (CropManager.GetCropReferenceByCropId(__instance.QualifiedItemId) is not null)
+        {
+            tags.Add("agromantic_crop");
+        }
+        else if (CropManager.GetCropReferenceBySeedId(__instance.QualifiedItemId) is not null)
+        {
+            tags.Add("agromantic_seed");
+        }
+    }
+    
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Item), nameof(Item.GetContextTags))] // I don't want to regenerate every context tag on every item in an existing save, so this patch handles existing items.
+    public static void GetContextTags_Postfix(Item __instance, ref HashSet<string> __result)
+    {
+        if (CropManager.GetCropReferenceByCropId(__instance.QualifiedItemId) is not null)
+        {
+            __result.Add("agromantic_crop");
+        }
+        else if (CropManager.GetCropReferenceBySeedId(__instance.QualifiedItemId) is not null)
+        {
+            __result.Add("agromantic_seed");
+        }
     }
     
     [HarmonyPostfix]

@@ -119,12 +119,12 @@ public partial class AgrometerMenu
     private string GetEssenceTooltip(int essenceIdx)
     {
         return essenceIdx switch {
-            0 => "Yield Essence:Chance for extra crops\nwhen harvesting.",
-            1 => "Quality Essence:More quality essence leads\nto higher quality crops.",
-            2 => "Growth Essence:Speeds up the rate at which\ncrops grow.",
-            3 => "Giant Essence:Increases the odds of becoming\na giant crop, if possible.",
-            4 => "Retention Essence:Higher retention crops use\nless water.",
-            5 => "Seed Essence:Extra seeds might be dug up\nwhen harvesting.",
+            0 => $"{Agromancy.TKString("Yield")} {Agromancy.TKString("Essence")}:{Agromancy.TKString("YieldTip")}",
+            1 => $"{Agromancy.TKString("Quality")} {Agromancy.TKString("Essence")}:{Agromancy.TKString("QualityTip")}",
+            2 => $"{Agromancy.TKString("Growth")} {Agromancy.TKString("Essence")}:{Agromancy.TKString("GrowthTip")}",
+            3 => $"{Agromancy.TKString("Giant")} {Agromancy.TKString("Essence")}:{Agromancy.TKString("GiantTip")}",
+            4 => $"{Agromancy.TKString("Retention")} {Agromancy.TKString("Essence")}:{Agromancy.TKString("RetentionTip")}",
+            5 => $"{Agromancy.TKString("Seed")} {Agromancy.TKString("Essence")}:{Agromancy.TKString("SeedTip")}",
             _ => ""
         };
     }
