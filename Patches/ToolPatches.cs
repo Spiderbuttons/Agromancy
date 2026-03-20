@@ -12,7 +12,7 @@ public static class ToolPatches
     [HarmonyPatch(nameof(Tool.DoFunction))]
     public static void DoFunction_Postfix(Tool __instance)
     {
-        if (__instance.IsAgrometer())
+        if (__instance.IsAgrometer() && __instance.getLastFarmerToUse().UniqueMultiplayerID == Game1.player.UniqueMultiplayerID)
         {
             Game1.activeClickableMenu = new Menus.AgrometerMenu(__instance);
         }
