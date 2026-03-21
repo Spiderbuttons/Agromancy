@@ -84,8 +84,6 @@ public class CropManager
 
     public static Item ModifyHarvestedCrop(Item harvest, Crop crop, JunimoHarvester? junimoHarvester = null)
     {
-        Log.Alert("Modifying crop harvest.");
-        if (junimoHarvester is not null) Log.Alert("(Harvested by Junimo)");
         Random rng = new Random((int)Game1.stats.DaysPlayed);
         Point pos = crop.tilePosition.ToPoint();
         AgroCropReference? cropRef = GetCropReferenceByCropId($"(O){crop.indexOfHarvest.Value}");
@@ -100,11 +98,9 @@ public class CropManager
         int qualityToRaiseTo = 1;
         while (qual > 0)
         {
-            Log.Debug($"Applying quality essence. Current essence: {qual}, percent chance to raise to next quality ({qualityToRaiseTo}): {(qual / 85f) * 100}%");
             float percentChance = qual / 85f; // 255 / 3 = 85
             if (rng.NextDouble() < percentChance)
             {
-                Log.Debug($"Raising quality to {qualityToRaiseTo}.");
                 harvest.Quality = Math.Max(harvest.Quality, qualityToRaiseTo);
             }
             qual -= 85;
@@ -125,7 +121,6 @@ public class CropManager
         float retention = crop.Dirt.GetFertilizerWaterRetentionChance();
         byte waterEssence = Math.Clamp((byte)((retention / 4f) * 255), (byte)0, (byte)255);
         essences.WaterEssence = Math.Max(essences.WaterEssence, waterEssence);
-        Log.Debug($"Calculated water essence: {waterEssence}, retention chance: {retention}. Setting crop's water essence to {essences.WaterEssence}.");
         
         /* Giant */
         // (See CropPatches for relevant GiantCrop code.)
@@ -151,8 +146,6 @@ public class CropManager
                     junimoHarvester.tryToAddItemToHut(item);
                 }
             }
-
-            Log.Debug($"Bumping crop yield by 1. Current extra yield: {extraYield}");
         }
         
         /* Seed */
@@ -168,7 +161,6 @@ public class CropManager
                 seedItem.ApplyEssences(essences);
                 junimoHarvester.tryToAddItemToHut(seedItem);
             }
-            Log.Debug($"Dropping an extra seed. Current extra seeds: {droppedSeeds}");
         }
         
         return (Item)harvest.ApplyEssences(essences);
@@ -235,7 +227,6 @@ public class CropManager
             {
                 crop.newDay(crop.Dirt.state.Value);
                 extraGrowths++;
-                Log.Debug($"Applying extra growth to crop at {crop.tilePosition}. Current phase: {crop.currentPhase}, extra growths applied: {extraGrowths}");
             }
             
             return true;
@@ -256,10 +247,7 @@ public class CropManager
             if (item.modData.ContainsKey(Agromancy.Manifest.UniqueID))
                 continue;
             
-            Log.Error("Adding Crop Essences to " + item.DisplayName);
-            
             CropEssences newCropEssences = EssenceCalculator.DefaultEssences(cropRef) ?? EssenceCalculator.EmptyEssences;
-            Log.Info(newCropEssences.ToString());
             item.modData[Agromancy.Manifest.UniqueID] = JsonConvert.SerializeObject(newCropEssences);
         }
     }

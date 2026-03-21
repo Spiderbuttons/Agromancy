@@ -473,8 +473,7 @@ namespace Agromancy
 
             if (e.Button is SButton.F6)
             {
-                // Game1.weatherForTomorrow = "Rain";
-                // Game1.ApplyWeatherForNewDay();
+                
             }
 
             if (e.Button is SButton.F8)

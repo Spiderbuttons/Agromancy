@@ -341,7 +341,6 @@ public partial class AgrometerMenu : IClickableMenu
         }
         
         float maxEssenceForTier = vialTier * 85f;
-        Log.Debug($"Checking if vial can infuse essence {essenceIdx}: vial tier {vialTier}, essence in vial {GetEssenceInVial(essenceIdx)}, max for tier {maxEssenceForTier}");
         return EssenceCalculator.GetEssence(essences, essenceIdx) < maxEssenceForTier;
     }
 
