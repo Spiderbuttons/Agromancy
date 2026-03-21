@@ -39,5 +39,11 @@
   "GoldCrops": "Gold Quality Crops",
   
   "FoundAgrometer_One": "You found an Agrometer! It looks like there's something attached...",
-  "FoundAgrometer_Two": "Why don't you take a look at your crops with it?"
+  "FoundAgrometer_Two": "Why don't you take a look at your crops with it?",
+  
+  "Config.AllowMutations_Name": "Allow Magical Mutations",
+  "Config.AllowMutations_Description": "If enabled, harvested crops will receive a small, random variation to their magical essences.",
+  
+  "Config.PositiveMutations_Name": "Positive Mutations Only",
+  "Config.PositiveMutations_Description": "If enabled, harvested crops will only receive positive mutations to their essences. If disabled, mutations may sometimes lower essences instead. Does nothing if crop mutations are disabled.",
 }

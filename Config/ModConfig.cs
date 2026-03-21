@@ -5,7 +5,8 @@ namespace Agromancy.Config;
 
 public sealed class ModConfig
 {
-    public bool Enabled { get; set; } = true;
+    public bool AllowCropMutations { get; set; } = true;
+    public bool PositiveMutationsOnly { get; set; } = false;
 
     public ModConfig()
     {
@@ -14,7 +15,8 @@ public sealed class ModConfig
 
     private void Init()
     {
-        this.Enabled = true;
+        AllowCropMutations = true;
+        PositiveMutationsOnly = false;
     }
 
     public void SetupConfig(IGenericModConfigMenuApi configMenu, IManifest ModManifest, IModHelper Helper)
@@ -27,10 +29,18 @@ public sealed class ModConfig
 
         configMenu.AddBoolOption(
             mod: ModManifest,
-            name: () => "Enabled",
-            tooltip: () => "Enable or disable this mod.",
-            getValue: () => this.Enabled,
-            setValue: value => this.Enabled = value
+            name: i18n.Config_AllowMutationsName,
+            tooltip: i18n.Config_AllowMutationsDescription,
+            getValue: () => AllowCropMutations,
+            setValue: value => AllowCropMutations = value
+        );
+        
+        configMenu.AddBoolOption(
+            mod: ModManifest,
+            name: i18n.Config_PositiveMutationsName,
+            tooltip: i18n.Config_PositiveMutationsDescription,
+            getValue: () => PositiveMutationsOnly,
+            setValue: value => PositiveMutationsOnly = value
         );
     }
 }

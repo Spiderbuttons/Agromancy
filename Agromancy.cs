@@ -133,7 +133,6 @@ namespace Agromancy
             int farmersWhoFoundAgrometer = farmers.Sum(farmer => farmer.hasOrWillReceiveMail($"{UNIQUE_ID}_FoundAgrometer") ? 1 : 0);
             int missingAgrometers = farmersWhoFoundAgrometer - agrometersFound;
             int missingVials = farmersWhoFoundAgrometer - vialsFound;
-            Log.Debug($"Farmers who found agrometer: {farmersWhoFoundAgrometer}, Agrometers found: {agrometersFound}, Vials found: {vialsFound}, Missing agrometers: {missingAgrometers}, Missing vials: {missingVials}");
             if (missingVials > 0)
             {
                 woodsShop.Add(ItemRegistry.Create($"(O){UNIQUE_ID}_T1EssenceVial", amount: missingVials));
@@ -480,101 +479,10 @@ namespace Agromancy
             if (!Context.IsWorldReady)
                 return;
 
-            if (e.Button is SButton.F6)
-            {
-                
-            }
-
-            if (e.Button is SButton.F8)
-            {
-                Game1.player.ActiveObject?.ApplyEssences(EssenceCalculator.RandomEssences());
-                Log.Warn($"Random Essences on held item:");
-                if (Game1.player.ActiveObject is not null &&
-                    Game1.player.ActiveObject.modData.ContainsKey(Manifest.UniqueID))
-                {
-                    CropEssences essences = JsonConvert.DeserializeObject<CropEssences>(Game1.player.ActiveObject.modData[Manifest.UniqueID]!)!;
-                    Log.Debug(essences);
-                }
-            }
-
-            if (e.Button is SButton.F5 && Game1.player.ActiveObject is not null)
-            {
-                Game1.player.ActiveObject.modData[Manifest.UniqueID] = JsonConvert.SerializeObject(new CropEssences
-                {
-                    YieldEssence = 255,
-                    QualityEssence = 255,
-                    GrowthEssence = 255,
-                    GiantEssence = 255,
-                    WaterEssence = 255,
-                    SeedEssence = 255
-                });
-                Log.Info("Added Agromancy data to held item.");
-            }
-
             if (e.Button is SButton.F3)
             {
-                var clickedTile = e.Cursor.Tile;
-                if (Game1.currentLocation.resourceClumps.FirstOrDefault(c => c.occupiesTile((int)clickedTile.X, (int)clickedTile.Y)) is not null)
-                {
-                    var clump = Game1.currentLocation.resourceClumps.FirstOrDefault(c => c.occupiesTile((int)clickedTile.X, (int)clickedTile.Y));
-                    if (clump is null) return;
-                    CropEssences? clumpEssences = CropManager.GrabEssences(clump);
-                    Log.Error("------------------------");
-                    if (clumpEssences is null)
-                    {
-                        Log.Warn("No Agromancy data found on this resource clump.");
-                        return;
-                    }
-                    Log.Info("Agromancy data found on this resource clump:");
-                    foreach (var prop in typeof(CropEssences).GetProperties())
-                    {
-                        Log.Info($"{prop.Name}: {prop.GetValue(clumpEssences)}");
-                    }
-                }
-                // else if (Game1.currentLocation.terrainFeatures.TryGetValue(clickedTile, out var terrainFeature))
-                // {
-                //     if (terrainFeature is not HoeDirt feature) return;
-                //     CropEssences? hoeDirtEssences = CropManager.GrabEssences(feature.crop);
-                //     Log.Error("------------------------");
-                //     if (hoeDirtEssences is null)
-                //     {
-                //         Log.Warn("No Agromancy data found on this crop.");
-                //         return;
-                //     }
-                //
-                //     Log.Info("Agromancy data found on this crop:");
-                //
-                //     foreach (var prop in typeof(CropEssences).GetProperties())
-                //     {
-                //         if (prop.PropertyType == typeof(byte[]))
-                //         {
-                //             byte[] arr = (byte[])prop.GetValue(hoeDirtEssences)!;
-                //             Log.Info($"{prop.Name}: [{string.Join(", ", arr)}]");
-                //         }
-                //         else Log.Info($"{prop.Name}: {prop.GetValue(hoeDirtEssences)}");
-                //     }
-                // }
-                else if (Game1.player.ActiveObject is not null)
-                {
-                    bool hasAgroData = Game1.player.ActiveObject.modData.ContainsKey(Manifest.UniqueID);
-                    Log.Error("------------------------");
-                    Log.Warn($"Has Agromancy Data: {hasAgroData}");
-                    if (hasAgroData)
-                    {
-                        CropEssences essences =
-                            JsonConvert.DeserializeObject<CropEssences>(
-                                Game1.player.ActiveObject.modData[Manifest.UniqueID]!)!;
-                        foreach (var prop in typeof(CropEssences).GetProperties())
-                        {
-                            if (prop.PropertyType == typeof(byte[]))
-                            {
-                                byte[] arr = (byte[])prop.GetValue(essences)!;
-                                Log.Info($"{prop.Name}: [{string.Join(", ", arr)}]");
-                            }
-                            else Log.Info($"{prop.Name}: {prop.GetValue(essences)}");
-                        }
-                    }
-                }
+                CropEssences essences = CropManager.GrabEssences(Game1.player.ActiveObject)!;
+                Log.Warn(essences);
             }
         }
     }
