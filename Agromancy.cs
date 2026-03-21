@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Agromancy.APIs;
@@ -11,25 +10,21 @@ using Microsoft.Xna.Framework;
 using Agromancy.Config;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
 using Agromancy.Helpers;
 using Agromancy.Commands;
 using Agromancy.Menus;
 using Agromancy.Models;
+using Agromancy.Patches;
 using Agromancy.Pedestals;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using StardewValley.Extensions;
 using StardewValley.GameData.BigCraftables;
-using StardewValley.GameData.Buffs;
-using StardewValley.GameData.Crops;
-using StardewValley.GameData.GiantCrops;
 using StardewValley.GameData.Objects;
 using StardewValley.GameData.Tools;
-using StardewValley.Mods;
-using StardewValley.Objects;
-using StardewValley.TerrainFeatures;
+using StardewValley.Locations;
 
 namespace Agromancy
 {
@@ -71,18 +66,17 @@ namespace Agromancy
 
             try
             {
-                // TODO: Path.Combine
-                byte[] stream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/grayscale.mgfx"));
+                byte[] stream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets", "shaders", "grayscale.mgfx"));
                 GrayscaleFx = new Effect(Game1.graphics.GraphicsDevice, stream);
-                byte[] blurStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/blur.mgfx"));
+                byte[] blurStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets", "shaders", "blur.mgfx"));
                 BlurFx = new Effect(Game1.graphics.GraphicsDevice, blurStream);
-                byte[] statsStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/stats.mgfx"));
+                byte[] statsStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets", "shaders", "stats.mgfx"));
                 StatsFx = new Effect(Game1.graphics.GraphicsDevice, statsStream);
-                byte[] liquidCircleStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/liquidcircle.mgfx"));
+                byte[] liquidCircleStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets", "shaders", "liquidcircle.mgfx"));
                 LiquidCircleFx = new Effect(Game1.graphics.GraphicsDevice, liquidCircleStream);
-                byte[] dissolveStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/dissolve.mgfx"));
+                byte[] dissolveStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets", "shaders", "dissolve.mgfx"));
                 DissolveFx = new Effect(Game1.graphics.GraphicsDevice, dissolveStream);
-                byte[] essenceVialStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets/shaders/essencevial.mgfx"));
+                byte[] essenceVialStream = File.ReadAllBytes(Path.Combine(helper.DirectoryPath, "assets", "shaders", "essencevial.mgfx"));
                 EssenceVialFx = new Effect(Game1.graphics.GraphicsDevice, essenceVialStream);
             }
             catch (Exception e)
@@ -123,6 +117,32 @@ namespace Agromancy
                 Game1.player.craftingRecipes.TryAdd($"{UNIQUE_ID}_Pedestal_Recipe", 0);
                 Game1.player.craftingRecipes.TryAdd($"{UNIQUE_ID}_Altar_Recipe", 0);
             }
+            
+            int agrometersFound = 0;
+            int vialsFound = 0;
+            Utility.ForEachItem((item) =>
+            {
+                if (item.IsEssenceVial()) vialsFound++;
+                else if (item is Tool tool && tool.IsAgrometer()) agrometersFound++;
+
+                return true;
+            });
+
+            var woodsShop = Woods.GetLostItemsShopInventory();
+            var farmers = Game1.getAllFarmers();
+            int farmersWhoFoundAgrometer = farmers.Sum(farmer => farmer.hasOrWillReceiveMail($"{UNIQUE_ID}_FoundAgrometer") ? 1 : 0);
+            int missingAgrometers = farmersWhoFoundAgrometer - agrometersFound;
+            int missingVials = farmersWhoFoundAgrometer - vialsFound;
+            Log.Debug($"Farmers who found agrometer: {farmersWhoFoundAgrometer}, Agrometers found: {agrometersFound}, Vials found: {vialsFound}, Missing agrometers: {missingAgrometers}, Missing vials: {missingVials}");
+            if (missingVials > 0)
+            {
+                woodsShop.Add(ItemRegistry.Create($"(O){UNIQUE_ID}_T1EssenceVial", amount: missingVials));
+            } else woodsShop.RemoveWhere(i => i.IsEssenceVial());
+            
+            if (missingAgrometers > 0)
+            {
+                woodsShop.Add(ItemRegistry.Create($"(T){UNIQUE_ID}_Agrometer", amount: missingAgrometers));
+            } else woodsShop.RemoveWhere(i => i is Tool tool && tool.IsAgrometer());
         }
 
         private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
@@ -448,17 +468,6 @@ namespace Agromancy
                 BlendState.AlphaBlend,
                 SamplerState.PointClamp
             );
-            //
-            // e.SpriteBatch.Draw(
-            //     texture: Game1.staminaRect,
-            //     destinationRectangle: e.SpriteBatch.GraphicsDevice.Viewport.Bounds,
-            //     sourceRectangle: null,
-            //     color: Color.White * 0f,
-            //     rotation: 0f,
-            //     origin: Vector2.Zero,
-            //     effects: SpriteEffects.None,
-            //     layerDepth: 0.9f
-            // );
         }
 
         public static string TKString(string key)
