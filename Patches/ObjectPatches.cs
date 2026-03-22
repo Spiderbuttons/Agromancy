@@ -7,6 +7,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using StardewModdingAPI.Events;
+using StardewModdingAPI.Framework;
+using StardewModdingAPI.Framework.ModHelpers;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.TokenizableStrings;
@@ -109,7 +111,7 @@ public static class ObjectPatches
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Object), nameof(Object.draw), typeof(SpriteBatch), typeof(int), typeof(int), typeof(float), typeof(float))]
-    public static void draw_Prefix(Object __instance, SpriteBatch spriteBatch, int xNonTile, int yNonTile, float layerDepth, float alpha)
+    public static void draw_Prefix(Object __instance, SpriteBatch spriteBatch)
     {
         if (!__instance.IsEssenceVial()) return;
         
@@ -127,28 +129,33 @@ public static class ObjectPatches
         float total = yield + quality + growth + giant + water + seed;
 
         float fillPercentage = Math.Clamp(total / (10f * GetEssenceVialTier(__instance) * 6f), 0f, 1f);
+        Agromancy.EssenceVialFx.Parameters["PerlinNoise"].SetValue(Agromancy.PerlinNoise);
+        Agromancy.EssenceVialFx.Parameters["Waviness"].SetValue(fillPercentage > 0f ? 0.5f : 0f);
+        Agromancy.EssenceVialFx.Parameters["FillPercentage"].SetValue(fillPercentage > 0f ? fillPercentage + 0.5f : 0f);
+        Agromancy.EssenceVialFx.Parameters["BottomOfVial"].SetValue(1f - 0.125f);
+        Agromancy.EssenceVialFx.Parameters["TopOfVial"].SetValue(0.5f);
+        Agromancy.EssenceVialFx.Parameters["Time"].SetValue((float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 500f);
+        Agromancy.EssenceVialFx.Parameters["PrismaticColour"].SetValue(new Vector4(Utility.GetPrismaticColor().R / 255f, Utility.GetPrismaticColor().G / 255f, Utility.GetPrismaticColor().B / 255f, 0.9f));
+        Agromancy.EssenceVialFx.Parameters["GlassShineColour"].SetValue(new Vector4(219, 211, 206, 255) / 255f);
+        Agromancy.EssenceVialFx.Parameters["Flipped"].SetValue(false);
+
+        spriteBatch.End();
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, effect: Agromancy.EssenceVialFx);
+    }
+    
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Object), nameof(Object.draw), typeof(SpriteBatch), typeof(int), typeof(int), typeof(float), typeof(float))]
+    public static void draw_Postfix(Object __instance, SpriteBatch spriteBatch)
+    {
+        if (!__instance.IsEssenceVial()) return;
         
-        ParsedItemData itemData2 = ItemRegistry.GetDataOrErrorItem(__instance.QualifiedItemId);
-        spriteBatch.Draw(
-            texture: Game1.staminaRect,
-            position: Game1.GlobalToLocal(
-                viewport: Game1.viewport,
-                globalPosition: new Vector2(
-                    xNonTile + 32 + (__instance.shakeTimer > 0 ? Game1.random.Next(-1, 2) : 0),
-                    yNonTile + 60 + (__instance.shakeTimer > 0 ? Game1.random.Next(-1, 2) : 0))),
-            sourceRectangle: itemData2.GetSourceRect(0, __instance.ParentSheetIndex),
-            color: Utility.GetPrismaticColor() * 0.85f,
-            rotation: 0f,
-            origin: new Vector2(8f, 16f),
-            scale: __instance.scale.Y > 1f ? __instance.getScale() : new Vector2(2f, MathHelper.Lerp(0f, 2f, fillPercentage)),
-            effects: __instance.Flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None,
-            layerDepth: layerDepth - 0.0000001f
-            );
+        spriteBatch.End();
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
     }
     
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Object), nameof(Object.drawInMenu))]
-    public static void drawInMenu_Prefix(Object __instance, SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow)
+    public static void drawInMenu_Prefix(Object __instance, SpriteBatch spriteBatch)
     {
         if (!__instance.IsEssenceVial()) return;
         
@@ -166,19 +173,111 @@ public static class ObjectPatches
         float total = yield + quality + growth + giant + water + seed;
 
         float fillPercentage = Math.Clamp(total / (10f * GetEssenceVialTier(__instance) * 6f), 0f, 1f);
+        Agromancy.EssenceVialFx.Parameters["PerlinNoise"].SetValue(Agromancy.PerlinNoise);
+        Agromancy.EssenceVialFx.Parameters["Waviness"].SetValue(fillPercentage > 0f ? 0.5f : 0f);
+        Agromancy.EssenceVialFx.Parameters["FillPercentage"].SetValue(fillPercentage > 0f ? fillPercentage + 0.5f : 0f);
+        Agromancy.EssenceVialFx.Parameters["BottomOfVial"].SetValue(1f - 0.125f);
+        Agromancy.EssenceVialFx.Parameters["TopOfVial"].SetValue(0.5f);
+        Agromancy.EssenceVialFx.Parameters["Time"].SetValue((float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 500f);
+        Agromancy.EssenceVialFx.Parameters["PrismaticColour"].SetValue(new Vector4(Utility.GetPrismaticColor().R / 255f, Utility.GetPrismaticColor().G / 255f, Utility.GetPrismaticColor().B / 255f, 0.9f));
+        Agromancy.EssenceVialFx.Parameters["GlassShineColour"].SetValue(new Vector4(219, 211, 206, 255) / 255f);
+        Agromancy.EssenceVialFx.Parameters["Flipped"].SetValue(false);
+
+        spriteBatch.End();
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, effect: Agromancy.EssenceVialFx);
+    }
+    
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Object), nameof(Object.drawInMenu))]
+    public static void drawInMenu_Postfix(Object __instance, SpriteBatch spriteBatch)
+    {
+        if (!__instance.IsEssenceVial()) return;
         
-        ParsedItemData itemData2 = ItemRegistry.GetDataOrErrorItem(__instance.QualifiedItemId);
-        spriteBatch.Draw(
-            texture: Game1.staminaRect,
-            position: location + new Vector2(32f, 48f + (8 * scaleSize)),
-            sourceRectangle: itemData2.GetSourceRect(0, __instance.ParentSheetIndex),
-            color: Utility.GetPrismaticColor() * 0.85f,
+        spriteBatch.End();
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp);
+    }
+    
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(Object), nameof(Object.drawWhenHeld))]
+    public static void drawWhenHeld_Prefix(Object __instance, ref SpriteBatch spriteBatch, ref Vector2 objectPosition, ref (SpriteBatch, RenderTarget2D?, RenderTarget2D, Vector2) __state)
+    {
+        if (!__instance.IsEssenceVial()) return;
+        
+        for (int i = 0; i < 7; i++)
+        {
+            __instance.modData.TryAdd($"{Agromancy.UNIQUE_ID}_{i}", "0");
+        }
+        
+        float yield = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_0"]) / 255f;
+        float quality = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_1"]) / 255f;
+        float growth = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_2"]) / 255f;
+        float giant = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_3"]) / 255f;
+        float water = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_4"]) / 255f;
+        float seed = float.Parse(__instance.modData[$"{Agromancy.UNIQUE_ID}_5"]) / 255f;
+        float total = yield + quality + growth + giant + water + seed;
+        
+        float fillPercentage = Math.Clamp(total / (10f * GetEssenceVialTier(__instance) * 6f), 0f, 1f);
+        Agromancy.EssenceVialFx.Parameters["PerlinNoise"].SetValue(Agromancy.PerlinNoise);
+        Agromancy.EssenceVialFx.Parameters["Waviness"].SetValue(fillPercentage > 0f ? 0.5f : 0f);
+        Agromancy.EssenceVialFx.Parameters["FillPercentage"].SetValue(fillPercentage > 0f ? fillPercentage + 0.5f : 0f);
+        Agromancy.EssenceVialFx.Parameters["BottomOfVial"].SetValue(1f - 0.125f);
+        Agromancy.EssenceVialFx.Parameters["TopOfVial"].SetValue(0.5f);
+        Agromancy.EssenceVialFx.Parameters["Time"].SetValue((float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 500f);
+        Agromancy.EssenceVialFx.Parameters["PrismaticColour"].SetValue(new Vector4(Utility.GetPrismaticColor().R / 255f, Utility.GetPrismaticColor().G / 255f, Utility.GetPrismaticColor().B / 255f, 0.9f));
+        Agromancy.EssenceVialFx.Parameters["GlassShineColour"].SetValue(new Vector4(219, 211, 206, 255) / 255f);
+        Agromancy.EssenceVialFx.Parameters["Flipped"].SetValue(false);
+        
+        // Thank you to mushymato aka chu my lifesaver
+        ParsedItemData dataOrErrorItem = ItemRegistry.GetDataOrErrorItem(__instance.QualifiedItemId);
+        Rectangle sourceRect = dataOrErrorItem.GetSourceRect();
+        RenderTarget2D? wasRenderTarget;
+        {
+            RenderTargetBinding[] wasRenderTargets = Game1.graphics.GraphicsDevice.GetRenderTargets();
+            wasRenderTarget = wasRenderTargets.Length > 0 ? wasRenderTargets[0].RenderTarget as RenderTarget2D : null;
+        }
+        RenderTarget2D renderTarget = new(
+            Game1.graphics.GraphicsDevice,
+            sourceRect.Width * 4,
+            sourceRect.Height * 4,
+            false,
+            SurfaceFormat.Color,
+            DepthFormat.None,
+            0,
+            RenderTargetUsage.DiscardContents
+        );
+        Game1.SetRenderTarget(renderTarget);
+        SpriteBatch batch = Agromancy.VialSpriteBatch ??= new SpriteBatch(Game1.graphics.GraphicsDevice);
+        batch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, effect: Agromancy.EssenceVialFx);
+        Game1.graphics.GraphicsDevice.Clear(Color.Transparent);
+        __state = new ValueTuple<SpriteBatch, RenderTarget2D?, RenderTarget2D, Vector2>(spriteBatch, wasRenderTarget, renderTarget, objectPosition);
+        spriteBatch = batch;
+        objectPosition = Vector2.Zero;
+    }
+    
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Object), nameof(Object.drawWhenHeld))]
+    public static void drawWhenHeld_Postfix(Object __instance, SpriteBatch spriteBatch, Vector2 objectPosition, Farmer f, ref (SpriteBatch, RenderTarget2D?, RenderTarget2D, Vector2) __state)
+    {
+        if (!__instance.IsEssenceVial()) return;
+        
+        SpriteBatch realBatch = __state.Item1;
+        RenderTarget2D? wasRenderTarget = __state.Item2;
+        RenderTarget2D renderTarget = __state.Item3;
+        Vector2 realPos = __state.Item4;
+        spriteBatch.End();
+        Game1.SetRenderTarget(wasRenderTarget);
+
+        realBatch.Draw(
+            texture: renderTarget,
+            position: realPos,
+            sourceRectangle: renderTarget.Bounds,
+            color: Color.White,
             rotation: 0f,
-            origin: new Vector2(8f, 16f),
-            scale: __instance.scale.Y > 1f ? __instance.getScale() : new Vector2(2f * scaleSize, MathHelper.Lerp(0f, 2f, fillPercentage) * scaleSize),
-            effects: __instance.Flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None,
-            layerDepth: layerDepth - 0.0000001f
-            );
+            origin: Vector2.Zero,
+            scale: 1f,
+            effects: SpriteEffects.None,
+            layerDepth: Math.Max(0f, (f.StandingPixel.Y + 3) / 10000f)
+        );
     }
     
     [HarmonyPostfix]

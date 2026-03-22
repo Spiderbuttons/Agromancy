@@ -3,6 +3,8 @@ using System.Linq;
 using Agromancy.Helpers;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
+using StardewModdingAPI.Framework;
+using StardewModdingAPI.Framework.ModHelpers;
 using StardewValley;
 using Object = StardewValley.Object;
 

@@ -171,6 +171,87 @@ public class AgromanticAltar : AgromanticPedestal
         //     b.Draw(itemData.Texture, Game1.GlobalToLocal(Game1.viewport, position), itemData.GetSourceRect(1), __instance.successColor.Value, 0f, new Vector2(0f, 16f), 4f, SpriteEffects.None, Math.Max(0f, (position.Y - 1f) / 10000f));
         // }
         
+        Agromancy.EssenceVialFx.Parameters["PerlinNoise"].SetValue(Agromancy.PerlinNoise);
+        Agromancy.EssenceVialFx.Parameters["Waviness"].SetValue(0f);
+        Agromancy.EssenceVialFx.Parameters["FillPercentage"].SetValue(0f);
+        Agromancy.EssenceVialFx.Parameters["BottomOfVial"].SetValue(1f - 0.125f);
+        Agromancy.EssenceVialFx.Parameters["TopOfVial"].SetValue(0.5f);
+        Agromancy.EssenceVialFx.Parameters["Time"].SetValue((float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 500f);
+        Agromancy.EssenceVialFx.Parameters["PrismaticColour"].SetValue(new Vector4(Utility.GetPrismaticColor().R / 255f, Utility.GetPrismaticColor().G / 255f, Utility.GetPrismaticColor().B / 255f, 1f));
+        Agromancy.EssenceVialFx.Parameters["GlassShineColour"].SetValue(new Vector4(219, 211, 206, 255) / 255f);
+        Agromancy.EssenceVialFx.Parameters["Flipped"].SetValue(false);
+
+        RenderTarget2D? oldTarget;
+        {
+            RenderTargetBinding[] wasRenderTargets = Game1.graphics.GraphicsDevice.GetRenderTargets();
+            oldTarget = wasRenderTargets.Length > 0 ? wasRenderTargets[0].RenderTarget as RenderTarget2D : null;
+        }
+        // capture output
+        RenderTarget2D renderTarget = new(
+            Game1.graphics.GraphicsDevice,
+            48,
+            48,
+            false,
+            SurfaceFormat.Color,
+            DepthFormat.None,
+            0,
+            RenderTargetUsage.DiscardContents
+        );
+        Game1.SetRenderTarget(renderTarget);
+        SpriteBatch batch = Agromancy.VialSpriteBatch ??= new SpriteBatch(Game1.graphics.GraphicsDevice);
+
+        Texture2D vialTexture;
+        Rectangle vialSourceRect;
+        
+        if (heldObject.Value == null)
+        {
+            var requiredItemData = ItemRegistry.GetDataOrErrorItem(requiredItems[currentlyShownItemIndex]);
+            requiredItemData.LoadTextureIfNeeded();
+            vialTexture = requiredItemData.Texture;
+            vialSourceRect = requiredItemData.GetSourceRect();
+        } else 
+        {
+            var heldObjectData = ItemRegistry.GetDataOrErrorItem(heldObject.Value.QualifiedItemId);
+            heldObjectData.LoadTextureIfNeeded();
+            vialTexture = heldObjectData.Texture;
+            vialSourceRect = heldObjectData.GetSourceRect();
+                
+            for (int i = 0; i < 7; i++)
+            {
+                heldObject.Value.modData.TryAdd($"{Agromancy.UNIQUE_ID}_{i}", "0");
+            }
+            
+            float yield = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_0"]) / 255f;
+            float qualityEssence = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_1"]) / 255f;
+            float growth = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_2"]) / 255f;
+            float giant = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_3"]) / 255f;
+            float water = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_4"]) / 255f;
+            float seed = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_5"]) / 255f;
+            float total = yield + qualityEssence + growth + giant + water + seed;
+
+            float fillPercentage = Math.Clamp(total / (10f * ObjectPatches.GetEssenceVialTier(heldObject.Value) * 6f), 0f, 1f);
+            Agromancy.EssenceVialFx.Parameters["Waviness"].SetValue(fillPercentage > 0f ? 0.5f : 0f);
+            Agromancy.EssenceVialFx.Parameters["FillPercentage"].SetValue(fillPercentage > 0f ? fillPercentage + 0.5f : 0f);
+        }
+        
+        batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, effect: Agromancy.EssenceVialFx);
+        Game1.graphics.GraphicsDevice.Clear(Color.Transparent);
+            
+        batch.Draw(
+            texture: vialTexture,
+            position: Vector2.Zero,
+            sourceRectangle: vialSourceRect,
+            color: Color.White,
+            rotation: 0f,
+            origin: Vector2.Zero,
+            scale: 3f,
+            effects: SpriteEffects.None,
+            layerDepth: 0f
+        );
+        
+        batch.End();
+        Game1.SetRenderTarget(oldTarget);
+        
         if (heldObject.Value != null)
         {
             var heldObjectData = ItemRegistry.GetDataOrErrorItem(heldObject.Value.QualifiedItemId);
@@ -183,38 +264,15 @@ public class AgromanticAltar : AgromanticPedestal
                 draw_position += new Vector2((float)(Game1.random.NextDouble() - 0.5) * 4f,
                     (float)(Game1.random.NextDouble() - 0.5) * 4f);
             }
-            
-            float yield = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_0"]) / 255f;
-            float qualityEssence = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_1"]) / 255f;
-            float growth = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_2"]) / 255f;
-            float giant = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_3"]) / 255f;
-            float water = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_4"]) / 255f;
-            float seed = float.Parse(heldObject.Value.modData[$"{Agromancy.UNIQUE_ID}_5"]) / 255f;
-            float total = yield + qualityEssence + growth + giant + water + seed;
 
-            float fillPercentage = Math.Clamp(total / (10f * ObjectPatches.GetEssenceVialTier(heldObject.Value) * 6f), 0f, 1f);
-            
-            // Drawin' the essence background.
             b.Draw(
-                texture: Game1.staminaRect,
-                position: Game1.GlobalToLocal(Game1.viewport, draw_position + new Vector2(12f, 42)),
-                sourceRectangle: heldObjectData.GetSourceRect(),
-                color: Utility.GetPrismaticColor() * 0.85f,
-                rotation: 0f,
-                origin: new Vector2(0, 16f),
-                scale: new Vector2(1.5f, MathHelper.Lerp(0f, 1.5f, fillPercentage)),
-                effects: SpriteEffects.None,
-                layerDepth: Math.Max(0f, (position.Y - 1f) / 10000f) - 0.0000001f
-            );
-            
-            b.Draw(
-                texture: heldObjectData.Texture,
+                texture: renderTarget,
                 position: Game1.GlobalToLocal(Game1.viewport, draw_position),
-                sourceRectangle: heldObjectData.GetSourceRect(),
+                sourceRectangle: renderTarget.Bounds,
                 color: Color.White,
                 rotation: 0f,
                 origin: Vector2.Zero,
-                scale: 3f,
+                scale: 1f,
                 effects: SpriteEffects.None,
                 layerDepth: Math.Max(0f, (position.Y - 1f) / 10000f)
             );
@@ -231,13 +289,13 @@ public class AgromanticAltar : AgromanticPedestal
             float yOffset = MathUtility.MultiLerp([0f, -8f, 0f], (float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds % 2000 / 2000);
             draw_position.Y += yOffset;
             b.Draw(
-                texture: requiredItemData.Texture,
+                texture: renderTarget,
                 position: Game1.GlobalToLocal(Game1.viewport, draw_position),
-                sourceRectangle: requiredItemData.GetSourceRect(),
+                sourceRectangle: renderTarget.Bounds,
                 color: Color.White * 0.3f,
                 rotation: 0f,
                 origin: Vector2.Zero,
-                scale: 3f,
+                scale: 1f,
                 effects: SpriteEffects.None,
                 layerDepth: Math.Max(0f, (position.Y - 1f) / 10000f)
             );

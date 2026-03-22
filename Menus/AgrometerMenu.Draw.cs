@@ -173,16 +173,36 @@ public partial class AgrometerMenu
             Rectangle sourceRect = iData.GetSourceRect();
             
             // This first draw is for the rainbow essence inside the vial.
-            b.Draw(
-                texture: Game1.staminaRect,
-                position: slotPosition - new Vector2(0f, slotPosition.Y >= Game1.uiViewport.Height / 2f ? -14 : 14) + randomJitter,
-                sourceRectangle: new Rectangle(0, 0, 8, 6),
-                color: Utility.GetPrismaticColor() * 0.85f,
-                rotation: currentMenuRotation / 360f * MathHelper.TwoPi + MathHelper.ToRadians(180f),
-                origin: new Vector2(4f, 0f),
-                scale: new Vector2(4f, MathHelper.Lerp(0f, 4f, fillPercentage)) * GetItemSlotScale(2).X * 0.6f * 0.75f,
-                effects: SpriteEffects.None,
-                layerDepth: 0.505f
+            // b.Draw(
+            //     texture: Game1.staminaRect,
+            //     position: slotPosition - new Vector2(0f, slotPosition.Y >= Game1.uiViewport.Height / 2f ? -14 : 14) + randomJitter,
+            //     sourceRectangle: new Rectangle(0, 0, 8, 6),
+            //     color: Utility.GetPrismaticColor() * 0.85f,
+            //     rotation: currentMenuRotation / 360f * MathHelper.TwoPi + MathHelper.ToRadians(180f),
+            //     origin: new Vector2(4f, 0f),
+            //     scale: new Vector2(4f, MathHelper.Lerp(0f, 4f, fillPercentage)) * GetItemSlotScale(2).X * 0.6f * 0.75f,
+            //     effects: SpriteEffects.None,
+            //     layerDepth: 0.505f
+            // );
+
+            b.End();
+            
+            bool flipped = slotPosition.Y < Game1.uiViewport.Height / 2f;
+            Agromancy.EssenceVialFx.Parameters["PerlinNoise"].SetValue(Agromancy.PerlinNoise);
+            Agromancy.EssenceVialFx.Parameters["Waviness"].SetValue(fillPercentage > 0f ? 0.5f : 0f);
+            Agromancy.EssenceVialFx.Parameters["FillPercentage"].SetValue(fillPercentage > 0f ? fillPercentage + (flipped ? -0.5f : 0.5f) : 0f);
+            Agromancy.EssenceVialFx.Parameters["BottomOfVial"].SetValue(1f - 0.125f);
+            Agromancy.EssenceVialFx.Parameters["TopOfVial"].SetValue(0.5f);
+            Agromancy.EssenceVialFx.Parameters["Time"].SetValue((float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 500f);
+            Agromancy.EssenceVialFx.Parameters["PrismaticColour"].SetValue(new Vector4(Utility.GetPrismaticColor().R / 255f, Utility.GetPrismaticColor().G / 255f, Utility.GetPrismaticColor().B / 255f, 0.9f));
+            Agromancy.EssenceVialFx.Parameters["GlassShineColour"].SetValue(new Vector4(219, 211, 206, 255) / 255f);
+            Agromancy.EssenceVialFx.Parameters["Flipped"].SetValue(flipped);
+            
+            b.Begin(
+                SpriteSortMode.Deferred,
+                BlendState.AlphaBlend,
+                SamplerState.PointClamp,
+                effect: Agromancy.EssenceVialFx
             );
             
             b.Draw(
@@ -195,6 +215,13 @@ public partial class AgrometerMenu
                 scale: 4f * GetItemSlotScale(2).X * 0.6f * 0.75f,
                 effects: SpriteEffects.None,
                 layerDepth: 0.51f);
+
+            b.End();
+            b.Begin(
+                SpriteSortMode.Deferred,
+                BlendState.AlphaBlend,
+                SamplerState.PointClamp
+            );
         }
         else
         {

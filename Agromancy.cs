@@ -20,11 +20,14 @@ using Agromancy.Pedestals;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using StardewModdingAPI.Framework;
+using StardewModdingAPI.Framework.ModHelpers;
 using StardewValley.Extensions;
 using StardewValley.GameData.BigCraftables;
 using StardewValley.GameData.Objects;
 using StardewValley.GameData.Tools;
 using StardewValley.Locations;
+using StardewValley.Mods;
 
 namespace Agromancy
 {
@@ -46,6 +49,8 @@ namespace Agromancy
         public static Effect LiquidCircleFx = null!;
         public static Effect DissolveFx = null!;
         public static Effect EssenceVialFx = null!;
+
+        public static SpriteBatch? VialSpriteBatch = null!;
 
         internal static string UNIQUE_ID => Manifest.UniqueID;
 
@@ -108,6 +113,7 @@ namespace Agromancy
             }
             
             CropManager = new CropManager();
+            VialSpriteBatch = new SpriteBatch(Game1.graphics.GraphicsDevice);
         }
 
         private void OnDayStarted(object? sender, DayStartedEventArgs e)
