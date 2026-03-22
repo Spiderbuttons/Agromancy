@@ -145,6 +145,8 @@ public partial class AgrometerMenu : IClickableMenu
 
     private void rotateMenu(float degrees = 180f, float startingAccel = -5f)
     {
+        if (isCropSuckedDry) return;
+        
         targetMenuRotation += degrees;
         rotationAcceleration = startingAccel;
         isExtractMode = !isExtractMode;
@@ -363,6 +365,8 @@ public partial class AgrometerMenu : IClickableMenu
 
     private void ScrollItem(int direction)
     {
+        if (isCropSuckedDry) return;
+        
         itemListOffset = (itemListOffset + direction + agromancyCrops.Count) % Math.Max(1, agromancyCrops.Count);
         UpdateCropInitials();
         Game1.playSound("drumkit6");
