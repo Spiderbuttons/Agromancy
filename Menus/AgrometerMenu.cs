@@ -239,12 +239,11 @@ public partial class AgrometerMenu : IClickableMenu
 
         EssenceCalculator.SetEssence(essences, essenceIdx, newEssenceAmount);
         crop.ApplyEssences(essences);
-        crop.Price = Math.Max(
-            0, 
-            (int)MathHelper.Lerp(
-                0, 
-                initialCropPrice, 
-                (float)EssenceCalculator.GetTotalEssences(essences) / EssenceCalculator.GetTotalEssences(initialCropEssences!)));
+        if (Agromancy.Config.DrainedCropsLoseValue)
+        {
+            crop.Price = Math.Max(0, (int)MathHelper.Lerp(0, initialCropPrice, (float)EssenceCalculator.GetTotalEssences(essences) / EssenceCalculator.GetTotalEssences(initialCropEssences!)));
+        }
+
         return true;
     }
 
