@@ -3,6 +3,7 @@ using Agromancy.Helpers;
 using Agromancy.Menus;
 using HarmonyLib;
 using StardewValley;
+using StardewValley.TokenizableStrings;
 
 namespace Agromancy.Patches;
 
@@ -40,7 +41,7 @@ public static class FarmerPatches
                 __instance.mailReceived.Add($"{Agromancy.UNIQUE_ID}_FoundAgrometer");
                 __instance.craftingRecipes.TryAdd($"{Agromancy.UNIQUE_ID}_Pedestal_Recipe", 0);
                 __instance.craftingRecipes.TryAdd($"{Agromancy.UNIQUE_ID}_Altar_Recipe", 0);
-                __instance.holdUpItemWithCustomMessage(item, [Agromancy.TKString("FoundAgrometer_One"), Agromancy.TKString("FoundAgrometer_Two")]);
+                __instance.holdUpItemWithCustomMessage(item, [TokenParser.ParseText(Agromancy.TKString("FoundAgrometer_One")), TokenParser.ParseText(Agromancy.TKString("FoundAgrometer_Two"))]);
             }
         });
     }
