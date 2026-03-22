@@ -91,8 +91,6 @@ public class AgromanticPedestal : ItemPedestal
 
     public override void performRemoveAction()
     {
-        base.performRemoveAction();
-        
         if (heldObject.Value != null)
         {
             Game1.createItemDebris(
@@ -112,6 +110,8 @@ public class AgromanticPedestal : ItemPedestal
                 ped.locked.Value = false;
             }
         }
+        
+        base.performRemoveAction();
     }
 
     public override bool onExplosion(Farmer who)
