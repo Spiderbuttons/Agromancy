@@ -6,6 +6,7 @@ namespace Agromancy.Config;
 public sealed class ModConfig
 {
     public bool DrainedCropsLoseValue { get; set; } = true;
+    public bool DestroyEmptyCrops { get; set; } = true;
     public bool AllowCropMutations { get; set; } = true;
     public bool PositiveMutationsOnly { get; set; } = false;
 
@@ -17,6 +18,7 @@ public sealed class ModConfig
     private void Init()
     {
         DrainedCropsLoseValue = true;
+        DestroyEmptyCrops = true;
         AllowCropMutations = true;
         PositiveMutationsOnly = false;
     }
@@ -35,6 +37,14 @@ public sealed class ModConfig
             tooltip: i18n.Config_DrainedCropsLoseValueDescription,
             getValue: () => DrainedCropsLoseValue,
             setValue: value => DrainedCropsLoseValue = value
+        );
+        
+        configMenu.AddBoolOption(
+            mod: ModManifest,
+            name: i18n.Config_DestroyEmptyCropsName,
+            tooltip: i18n.Config_DestroyEmptyCropsDescription,
+            getValue: () => DestroyEmptyCrops,
+            setValue: value => DestroyEmptyCrops = value
         );
 
         configMenu.AddBoolOption(

@@ -44,6 +44,9 @@
   "Config.DrainedCropsLoseValue_Name": "Draining Crops Reduces Value",
   "Config.DrainedCropsLoseValue_Description": "Draining crops of their essence will reduce the sell price of those crops proportional to the amount of essence drained.",
   
+  "Config.DestroyEmptyCrops_Name": "Destroy Drained Crops",
+  "Config.DestroyEmptyCrops_Description": "If enabled, crops that have been fully drained of their essence will be destroyed.",
+  
   "Config.AllowMutations_Name": "Allow Magical Mutations",
   "Config.AllowMutations_Description": "If enabled, harvested crops will receive a small, random variation to their magical essences.",
   

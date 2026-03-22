@@ -38,7 +38,7 @@ public partial class AgrometerMenu : IClickableMenu
 
     private int timeDraining = 0;
 
-    private bool isCropSuckedDry => GetCurrentlySelectedCropEssences() is { } essences && EssenceCalculator.PercentToPerfectCrop(essences) <= 0;
+    private bool isCropSuckedDry => Agromancy.Config.DestroyEmptyCrops && GetCurrentlySelectedCropEssences() is { } essences && EssenceCalculator.PercentToPerfectCrop(essences) <= 0;
     private int timeSinceSuckingDry = 0;
 
     private bool isExtractMode = true;
@@ -241,7 +241,7 @@ public partial class AgrometerMenu : IClickableMenu
         crop.ApplyEssences(essences);
         if (Agromancy.Config.DrainedCropsLoseValue)
         {
-            crop.Price = Math.Max(0, (int)MathHelper.Lerp(0, initialCropPrice, (float)EssenceCalculator.GetTotalEssences(essences) / EssenceCalculator.GetTotalEssences(initialCropEssences!)));
+            crop.Price = Math.Max(1, (int)MathHelper.Lerp(0, initialCropPrice, (float)EssenceCalculator.GetTotalEssences(essences) / EssenceCalculator.GetTotalEssences(initialCropEssences!)));
         }
 
         return true;
