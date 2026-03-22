@@ -18,16 +18,12 @@ using Agromancy.Models;
 using Agromancy.Patches;
 using Agromancy.Pedestals;
 using Microsoft.Xna.Framework.Graphics;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using StardewModdingAPI.Framework;
-using StardewModdingAPI.Framework.ModHelpers;
 using StardewValley.Extensions;
 using StardewValley.GameData.BigCraftables;
 using StardewValley.GameData.Objects;
 using StardewValley.GameData.Tools;
 using StardewValley.Locations;
-using StardewValley.Mods;
 
 namespace Agromancy
 {
@@ -484,12 +480,6 @@ namespace Agromancy
         {
             if (!Context.IsWorldReady)
                 return;
-
-            if (e.Button is SButton.F3)
-            {
-                CropEssences essences = CropManager.GrabEssences(Game1.player.ActiveObject)!;
-                Log.Warn(essences);
-            }
         }
     }
 }
