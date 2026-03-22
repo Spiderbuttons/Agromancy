@@ -2,7 +2,7 @@
     "Name": "Agromancy",
     "Author": "Spiderbuttons",
     "Version": "1.0.0",
-    "Description": "Crop-themed wizardry.",
+    "Description": "Extract agromantic essences from your crops and infuse them into seeds to produce better and more magical crops!",
     "UniqueID": "Spiderbuttons.Agromancy",
     "EntryDll": "Agromancy.dll",
     "Dependencies": [
@@ -15,5 +15,5 @@
             "IsRequired": false
         }
     ],
-    "UpdateKeys": []
+    "UpdateKeys": [ "Nexus:43202" ],
 }
