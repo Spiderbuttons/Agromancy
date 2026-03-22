@@ -88,7 +88,7 @@ public class CropManager
         Point pos = crop.tilePosition.ToPoint();
         AgroCropReference? cropRef = GetCropReferenceByCropId($"(O){crop.indexOfHarvest.Value}");
         CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(cropRef) ?? EssenceCalculator.EmptyEssences;
-        if (Agromancy.Config.AllowCropMutations) essences.Mutate(range: 5, positiveOnly: Agromancy.Config.PositiveMutationsOnly); // TODO: Config option to allow negative mutations.
+        if (Agromancy.Config.AllowCropMutations) essences.Mutate(range: 5, positiveOnly: Agromancy.Config.PositiveMutationsOnly);
         
         /* Quality */
         // We don't need to raise the quality on seeds, which may end up being the "harvest" here due to the SpaceCore compatibility I did.

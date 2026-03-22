@@ -41,6 +41,9 @@
   "FoundAgrometer_One": "You found an Agrometer! It looks like there's something attached...",
   "FoundAgrometer_Two": "Why don't you take a look at your crops with it?",
   
+  "Config.DrainedCropsLoseValue_Name": "Draining Crops Reduces Value",
+  "Config.DrainedCropsLoseValue_Description": "Draining crops of their essence will reduce the sell price of those crops proportional to the amount of essence drained.",
+  
   "Config.AllowMutations_Name": "Allow Magical Mutations",
   "Config.AllowMutations_Description": "If enabled, harvested crops will receive a small, random variation to their magical essences.",
   
