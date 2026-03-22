@@ -70,7 +70,7 @@ public class AgromanticPedestal : ItemPedestal
 
     public override bool performToolAction(Tool t)
     {
-        if (isInRitual.Value)
+        if (isInRitual.Value || heldObject.Value != null)
         {
             return false;
         }
@@ -91,6 +91,8 @@ public class AgromanticPedestal : ItemPedestal
 
     public override void performRemoveAction()
     {
+        base.performRemoveAction();
+        
         if (heldObject.Value != null)
         {
             Game1.createItemDebris(
@@ -99,6 +101,7 @@ public class AgromanticPedestal : ItemPedestal
                 direction: 0,
                 Location
             );
+            heldObject.Value = null;
         }
 
         if (this is AgromanticAltar altar)
@@ -106,15 +109,14 @@ public class AgromanticPedestal : ItemPedestal
             foreach (var ped in altar.getSurroundingPedestals())
             {
                 ped.setRequiredItems([]);
+                ped.locked.Value = false;
             }
         }
-
-        base.performRemoveAction();
     }
 
     public override bool onExplosion(Farmer who)
     {
-        if (isInRitual.Value || requiredItems.Count > 0) return false;
+        if (isInRitual.Value || heldObject.Value != null) return false;
         return base.onExplosion(who);
     }
 
