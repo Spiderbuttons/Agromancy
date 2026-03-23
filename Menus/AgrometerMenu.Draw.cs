@@ -190,13 +190,13 @@ public partial class AgrometerMenu
             bool flipped = slotPosition.Y < Game1.uiViewport.Height / 2f;
             Agromancy.EssenceVialFx.Parameters["PerlinNoise"].SetValue(Agromancy.PerlinNoise);
             Agromancy.EssenceVialFx.Parameters["Waviness"].SetValue(fillPercentage > 0f ? 0.5f : 0f);
-            Agromancy.EssenceVialFx.Parameters["FillPercentage"].SetValue(fillPercentage > 0f ? fillPercentage + (flipped ? -0.5f : 0.5f) : 0f);
+            Agromancy.EssenceVialFx.Parameters["FillPercentage"].SetValue(fillPercentage > 0f ? fillPercentage + 0.5f : 0f);
             Agromancy.EssenceVialFx.Parameters["BottomOfVial"].SetValue(1f - 0.125f);
             Agromancy.EssenceVialFx.Parameters["TopOfVial"].SetValue(0.5f);
             Agromancy.EssenceVialFx.Parameters["Time"].SetValue((float)Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 500f);
             Agromancy.EssenceVialFx.Parameters["PrismaticColour"].SetValue(new Vector4(Utility.GetPrismaticColor().R / 255f, Utility.GetPrismaticColor().G / 255f, Utility.GetPrismaticColor().B / 255f, 0.9f));
             Agromancy.EssenceVialFx.Parameters["GlassShineColour"].SetValue(new Vector4(219, 211, 206, 255) / 255f);
-            Agromancy.EssenceVialFx.Parameters["Flipped"].SetValue(flipped);
+            Agromancy.EssenceVialFx.Parameters["Flipped"].SetValue(false);
             
             b.Begin(
                 SpriteSortMode.Deferred,
