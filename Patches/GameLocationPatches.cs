@@ -20,6 +20,7 @@ public class GameLocationPatches
         if (explosion || detectOnly || !__instance.IsFarm) return;
 
         if (who.mailReceived.Contains($"{Agromancy.UNIQUE_ID}_FoundAgrometer")) return;
+        if (!who.mailReceived.Add($"{Agromancy.UNIQUE_ID}_SpawnedAgrometerToday")) return;
 
         Random rng = Utility.CreateDaySaveRandom(who.stats.DirtHoed);
         float chance = 0.001f + who.stats.DaysPlayed * 0.01f;

@@ -120,6 +120,8 @@ namespace Agromancy
                 Game1.player.craftingRecipes.TryAdd($"{UNIQUE_ID}_Altar_Recipe", 0);
             }
             
+            Game1.player.mailReceived.Remove($"{UNIQUE_ID}_SpawnedAgrometerToday");
+            
             int agrometersFound = 0;
             int vialsFound = 0;
             Utility.ForEachItem((item) =>
