@@ -24,7 +24,7 @@ public partial class AgrometerMenu
         
         Item? crop = GetCurrentlySelectedCrop();
         if (crop is null) return;
-        Game1.player.Items.RemoveAt(agromancyCrops[crop]);
+        Game1.player.Items[agromancyCrops[crop]] = null;
     }
 
     private Dictionary<Item, int> GetItemsWithAgromancyData()
