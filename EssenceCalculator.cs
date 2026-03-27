@@ -35,9 +35,9 @@ public static class EssenceCalculator
         essences.SeedEssence = MutateEssence(essences.SeedEssence, range, positiveOnly);
     }
 
-    public static IHaveModData ApplyEssences(this IHaveModData essenceTarget, CropEssences essences)
+    public static IHaveModData? ApplyEssences(this IHaveModData? essenceTarget, CropEssences essences)
     {
-        essenceTarget.modData[Agromancy.Manifest.UniqueID] = JsonConvert.SerializeObject(essences);
+        essenceTarget?.modData[Agromancy.Manifest.UniqueID] = JsonConvert.SerializeObject(essences);
         return essenceTarget;
     }
     
