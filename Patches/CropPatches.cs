@@ -190,4 +190,51 @@ public class CropPatches
             return code;
         }
     }
+    
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Crop), nameof(Crop.harvest))]
+    private static void harvest_Postfix(bool __result, Crop __instance, JunimoHarvester? junimoHarvester = null)
+    {
+        if (!__result || CropManager.ModifiedCropStore is null) return;
+        
+        CropEssences essences = CropManager.GrabEssences(CropManager.ModifiedCropStore) ?? EssenceCalculator.DefaultEssences(CropManager.GetCropReferenceByCropId(CropManager.ModifiedCropStore.QualifiedItemId)) ?? EssenceCalculator.EmptyEssences;
+        Random rng = new Random((int)Game1.stats.DaysPlayed);
+        Point pos = __instance.tilePosition.ToPoint();
+        
+        /* Yield */
+        int startingYield = CropManager.ModifiedCropStore.Stack;
+        float percentToBump = essences.YieldEssence / 255f;
+        int extraYield = 0;
+        while (extraYield < CropManager.MAX_CROP_YIELD && rng.NextDouble() < percentToBump)
+        {
+            extraYield++;
+            for (int i = 0; i < startingYield; i++)
+            {
+                if (junimoHarvester is null) CropManager.createObjectDebrisWithEssence(CropManager.ModifiedCropStore.QualifiedItemId, pos.X, pos.Y, essences, location: __instance.currentLocation, itemQuality: CropManager.ModifiedCropStore.Quality, velocityMultiplyer: 1.1f);
+                else
+                {
+                    Item item = ItemRegistry.Create(CropManager.ModifiedCropStore.QualifiedItemId, quality: CropManager.ModifiedCropStore.Quality);
+                    item.ApplyEssences(essences);
+                    junimoHarvester.tryToAddItemToHut(item);
+                }
+            }
+        }
+        
+        /* Seed */
+        float seedChance = essences.SeedEssence / 255f;
+        int droppedSeeds = 0;
+        while (droppedSeeds < CropManager.MAX_SEED_YIELD && rng.NextDouble() < seedChance)
+        {
+            droppedSeeds++;
+            if (junimoHarvester is null) CropManager.createObjectDebrisWithEssence(ItemRegistry.QualifyItemId(__instance.isWildSeedCrop() ? __instance.whichForageCrop.Value : __instance.netSeedIndex.Value), pos.X, pos.Y, essences, location: __instance.currentLocation, velocityMultiplyer: 1.1f);
+            else
+            {
+                Item seedItem = ItemRegistry.Create(ItemRegistry.QualifyItemId(__instance.isWildSeedCrop() ? __instance.whichForageCrop.Value : __instance.netSeedIndex.Value));
+                seedItem.ApplyEssences(essences);
+                junimoHarvester.tryToAddItemToHut(seedItem);
+            }
+        }
+
+        CropManager.ModifiedCropStore = null;
+    }
 }

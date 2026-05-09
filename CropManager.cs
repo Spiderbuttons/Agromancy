@@ -24,6 +24,8 @@ public class CropManager
     
     public static Dictionary<string, AgroCropReference> SeedIdToCropDataLookup { get; set; } = new();
     public static Dictionary<string, AgroCropReference> CropIdToCropDataLookup { get; set; } = new();
+
+    public static Item? ModifiedCropStore;
     
     public CropManager()
     {
@@ -84,8 +86,9 @@ public class CropManager
 
     public static Item? ModifyHarvestedCrop(Item harvest, Crop crop, JunimoHarvester? junimoHarvester = null)
     {
+        ModifiedCropStore = null;
+        
         Random rng = new Random((int)Game1.stats.DaysPlayed);
-        Point pos = crop.tilePosition.ToPoint();
         AgroCropReference? cropRef = GetCropReferenceByCropId($"(O){crop.indexOfHarvest.Value}");
         CropEssences essences = GrabEssences(crop) ?? EssenceCalculator.DefaultEssences(cropRef) ?? EssenceCalculator.EmptyEssences;
         if (Agromancy.Config.AllowCropMutations) essences.Mutate(range: 5, positiveOnly: Agromancy.Config.PositiveMutationsOnly);
@@ -127,42 +130,10 @@ public class CropManager
         
         /* Growth */
         // (See OnDayUpdated.)
-        
-        /* Yield */
-        /* /!\ This has to be done after quality, since the generated crops need to share the quality and essences after everything's been applied. /!\ */
-        int startingYield = harvest.Stack;
-        float percentToBump = essences.YieldEssence / 255f;
-        int extraYield = 0;
-        while (extraYield < MAX_CROP_YIELD && rng.NextDouble() < percentToBump)
-        {
-            extraYield++;
-            for (int i = 0; i < startingYield; i++)
-            {
-                if (junimoHarvester is null) createObjectDebrisWithEssence(harvest.QualifiedItemId, pos.X, pos.Y, essences, location: crop.currentLocation, itemQuality: harvest.Quality, velocityMultiplyer: 1.1f);
-                else
-                {
-                    Item item = ItemRegistry.Create(harvest.QualifiedItemId, quality: harvest.Quality);
-                    item.ApplyEssences(essences);
-                    junimoHarvester.tryToAddItemToHut(item);
-                }
-            }
-        }
-        
-        /* Seed */
-        float seedChance = essences.SeedEssence / 255f;
-        int droppedSeeds = 0;
-        while (droppedSeeds < MAX_SEED_YIELD && rng.NextDouble() < seedChance)
-        {
-            droppedSeeds++;
-            if (junimoHarvester is null) createObjectDebrisWithEssence(ItemRegistry.QualifyItemId(crop.isWildSeedCrop() ? crop.whichForageCrop.Value : crop.netSeedIndex.Value), pos.X, pos.Y, essences, location: crop.currentLocation, velocityMultiplyer: 1.1f);
-            else
-            {
-                Item seedItem = ItemRegistry.Create(ItemRegistry.QualifyItemId(crop.isWildSeedCrop() ? crop.whichForageCrop.Value : crop.netSeedIndex.Value));
-                seedItem.ApplyEssences(essences);
-                junimoHarvester.tryToAddItemToHut(seedItem);
-            }
-        }
-        
+
+        harvest.ApplyEssences(essences);
+        ModifiedCropStore = harvest.getOne();
+        ModifiedCropStore.Stack = harvest.Stack;
         return (Item?)harvest.ApplyEssences(essences);
     }
     
