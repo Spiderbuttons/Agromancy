@@ -14,7 +14,7 @@ public class HoeDirtPatches
     [HarmonyPatch(nameof(HoeDirt.plant))]
     public static void plant_Postfix(HoeDirt __instance, Farmer who, bool isFertilizer, bool __result)
     {
-        if (__result && !isFertilizer)
+        if (__result && !isFertilizer && who.ActiveObject != null)
         {
             CropEssences essences = CropManager.GrabEssences(who.ActiveObject) ?? EssenceCalculator.DefaultEssences(CropManager.GetCropReferenceBySeedId(who.ActiveObject.QualifiedItemId)) ?? EssenceCalculator.EmptyEssences;
             
